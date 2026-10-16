@@ -1,0 +1,2564 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shapeshifter Configurator — MetaMod</title>
+  <meta name="description"
+    content="Configure a MetaMod building: pick the product, roofline and style, preview it live, and get the correct three-part name for proposals and drawings.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    :root {
+      --ink: #181B29;
+      --ink-soft: #21263A;
+      --aqua: #A0D3E6;
+      --aqua-soft: #C9E6F1;
+      --steel: #5D7687;
+      --mist: #F4F5F7;
+      --white: #fff;
+      --grey: #646879;
+      --grey-lt: #A6A7AD;
+      --line: rgba(24, 27, 41, .14);
+      --line-dk: rgba(255, 255, 255, .16);
+      --gut: clamp(16px, 4vw, 48px);
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html {
+      -webkit-text-size-adjust: 100%
+    }
+
+    body {
+      margin: 0;
+      background: var(--mist);
+      color: var(--ink);
+      font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0
+    }
+
+    h1,
+    h2,
+    h3 {
+      letter-spacing: -.025em;
+      line-height: 1.1
+    }
+
+    .mono,
+    label,
+    .tag,
+    small,
+    .kv dt,
+    th {
+      font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace
+    }
+
+    button,
+    select,
+    input {
+      font: inherit;
+      color: inherit
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--aqua);
+      outline-offset: 2px;
+      box-shadow: 0 0 0 5px rgba(24, 27, 41, .3)
+    }
+
+    .wrap {
+      max-width: 1380px;
+      margin: 0 auto;
+      padding-inline: var(--gut)
+    }
+
+    /* ---------- header ---------- */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 60;
+      background: rgba(24, 27, 41, .95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, .1)
+    }
+
+    .bar {
+      display: flex;
+      align-items: center;
+      gap: clamp(16px, 3vw, 42px);
+      height: 68px
+    }
+
+    /* LOGO SLOT — drop the real mark in here as an <img> or inline SVG. */
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      text-decoration: none
+    }
+
+    .logo-mark {
+      height: 30px;
+      width: auto;
+      flex: none
+    }
+
+    .logo-word {
+      height: 15px;
+      width: auto
+    }
+
+    .footlogo {
+      height: 104px;
+      width: auto;
+      margin-bottom: 6px
+    }
+
+    /* ---- navigation with dropdown menus ---- */
+    nav {
+      display: flex;
+      align-items: center;
+      gap: clamp(10px, 1.7vw, 26px);
+      margin-left: auto
+    }
+
+    .navitem {
+      position: relative
+    }
+
+    .navtrigger,
+    .navlink {
+      background: none;
+      border: 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--grey-lt);
+      font-size: 15px;
+      font-weight: 500;
+      padding: 6px 0;
+      border-bottom: 2px solid transparent;
+      text-decoration: none
+    }
+
+    .navtrigger:hover,
+    .navlink:hover,
+    .navitem.open>.navtrigger {
+      color: var(--white);
+      border-color: var(--aqua)
+    }
+
+    .caret {
+      width: 9px;
+      height: 6px;
+      flex: none;
+      transition: transform .18s ease
+    }
+
+    .navitem.open>.navtrigger .caret {
+      transform: rotate(180deg)
+    }
+
+    .panel {
+      position: absolute;
+      top: calc(100% + 15px);
+      left: 0;
+      z-index: 70;
+      background: var(--ink-soft);
+      color: var(--white);
+      border: 1px solid rgba(255, 255, 255, .14);
+      border-top: 3px solid var(--aqua);
+      border-radius: 2px;
+      box-shadow: 0 24px 50px -28px rgba(0, 0, 0, .7);
+      padding: 18px;
+      min-width: 264px
+    }
+
+    .panel[hidden] {
+      display: none
+    }
+
+    .panel.right {
+      left: auto;
+      right: 0
+    }
+
+    .panel.wide {
+      width: min(640px, 86vw)
+    }
+
+    .panel-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px
+    }
+
+    .panel-grid a {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 11px 12px;
+      border-radius: 2px;
+      text-decoration: none
+    }
+
+    .panel-grid a:hover {
+      background: rgba(255, 255, 255, .07)
+    }
+
+    .panel-grid b {
+      display: block;
+      font-size: 15px;
+      font-weight: 600
+    }
+
+    .panel-grid small {
+      display: block;
+      color: var(--grey-lt);
+      font-size: 13px;
+      line-height: 1.4;
+      margin-top: 2px
+    }
+
+    .thumb {
+      width: 42px;
+      height: 26px;
+      flex: none;
+      margin-top: 3px;
+      color: var(--aqua-soft)
+    }
+
+    .panel-list {
+      display: grid
+    }
+
+    .panel-list a {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 10px 12px;
+      border-radius: 2px;
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 500
+    }
+
+    .panel-list a:hover {
+      background: rgba(255, 255, 255, .07)
+    }
+
+    .panel-list small {
+      color: var(--grey-lt);
+      font-weight: 400;
+      white-space: nowrap
+    }
+
+    .panel-foot {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-top: 14px;
+      padding: 15px 12px 2px;
+      border-top: 1px solid rgba(255, 255, 255, .16)
+    }
+
+    .panel-foot a {
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14.5px;
+      border-bottom: 2px solid var(--aqua);
+      padding-bottom: 2px
+    }
+
+    .nav-cta,
+    .bar .nav-cta {
+      display: none;
+    }
+
+    .btn {
+      display: inline-block;
+      text-decoration: none;
+      padding: 12px 22px;
+      font-weight: 600;
+      font-size: 15px;
+      border-radius: 2px;
+      border: 1px solid transparent;
+      cursor: pointer
+    }
+
+    .btn.btn-dark {
+      background: #181b29;
+      color: #ffffff
+    }
+
+    .btn-dark:hover {
+      background: var(--ink-soft)
+    }
+
+    .btn.btn-accent {
+      background: #a0d3e6;
+      color: #181b29
+    }
+
+    .btn-accent:hover {
+      background: #8CC7DE
+    }
+
+    .btn-line {
+      border-color: var(--line);
+      color: var(--ink)
+    }
+
+    .btn-line:hover {
+      border-color: var(--ink)
+    }
+
+    .btn-line-lt {
+      border-color: var(--line-dk);
+      color: var(--mist)
+    }
+
+    .btn-line-lt:hover {
+      border-color: var(--mist)
+    }
+
+    .menu-btn {
+      display: none;
+      margin-left: auto;
+      background: none;
+      border: 1px solid rgba(255, 255, 255, .28);
+      color: var(--white);
+      padding: 8px 13px;
+      border-radius: 2px;
+      font-weight: 600
+    }
+
+    @media(max-width:920px) {
+      nav {
+        position: fixed;
+        inset: 68px 0 auto 0;
+        max-height: calc(100vh - 68px);
+        overflow-y: auto;
+        background: var(--ink);
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        padding: 4px var(--gut) 28px;
+        border-bottom: 1px solid var(--line);
+        display: none
+      }
+
+      nav.open {
+        display: flex
+      }
+
+      .navitem {
+        position: static
+      }
+
+      .navtrigger,
+      .navlink {
+        width: 100%;
+        justify-content: space-between;
+        padding: 16px 0;
+        font-size: 18px;
+        color: var(--white);
+        border-bottom: 1px solid rgba(255, 255, 255, .14)
+      }
+
+      .panel,
+      .panel.wide {
+        position: static;
+        width: auto;
+        min-width: 0;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        padding: 6px 0 18px
+      }
+
+      .panel-grid {
+        grid-template-columns: 1fr
+      }
+
+      .panel-grid a,
+      .panel-list a {
+        padding-left: 0
+      }
+
+      .panel-foot {
+        padding-left: 0
+      }
+
+      .nav-cta {
+        display: block;
+        margin-top: 20px;
+        text-align: center
+      }
+
+      .menu-btn {
+        display: block
+      }
+
+      .bar .btn:not(.nav-cta) {
+        display: none
+      }
+    }
+
+    .intro {
+      padding: 34px 0 20px
+    }
+
+    .intro h1 {
+      font-size: clamp(28px, 4vw, 48px);
+      font-weight: 600
+    }
+
+    .intro p {
+      color: var(--grey);
+      max-width: 70ch;
+      margin-top: 10px
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+      gap: 24px;
+      align-items: start;
+      padding-bottom: 40px
+    }
+
+    @media(max-width:980px) {
+      .layout {
+        grid-template-columns: 1fr
+      }
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 6px
+    }
+
+    .stage {
+      position: sticky;
+      top: 80px;
+      overflow: hidden
+    }
+
+    @media(max-width:980px) {
+      .stage {
+        position: static
+      }
+    }
+
+    .stage-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--line);
+      flex-wrap: wrap
+    }
+
+    .stage-top .name {
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: -.02em
+    }
+
+    .stage-top small {
+      color: var(--grey);
+      display: block;
+      font-size: 12px
+    }
+
+    .view {
+      background: linear-gradient(#dcecf3, #f6fafc 70%);
+      padding: 6px 10px 0
+    }
+
+    .view svg {
+      width: 100%;
+      height: auto;
+      max-height: 430px
+    }
+
+    .out {
+      padding: 16px 18px;
+      border-top: 1px solid var(--line);
+      display: grid;
+      gap: 12px
+    }
+
+    .fmt {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 4px 12px;
+      align-items: center;
+      background: var(--mist);
+      border-radius: 4px;
+      padding: 10px 12px
+    }
+
+    .fmt small {
+      grid-column: 1/-1;
+      color: var(--grey);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-size: 11px
+    }
+
+    .fmt b {
+      font-weight: 600;
+      overflow-wrap: anywhere
+    }
+
+    .fmt.mono b {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 500
+    }
+
+    .btn {
+      border: 1px solid var(--ink);
+      background: #fff;
+      border-radius: 4px;
+      padding: 7px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600
+    }
+
+    .btn:hover {
+      background: var(--mist)
+    }
+
+    .btn.primary {
+      background: var(--ink);
+      color: #fff
+    }
+
+    .btn.primary:hover {
+      background: var(--ink-soft)
+    }
+
+    .btn.sm {
+      padding: 4px 8px;
+      font-size: 12px
+    }
+
+    .steps {
+      display: grid;
+      gap: 16px;
+      min-width: 0
+    }
+
+    .steps>*,
+    .layout>* {
+      min-width: 0
+    }
+
+    .step {
+      padding: 18px
+    }
+
+    .step h2 {
+      font-size: 17px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 4px
+    }
+
+    .step h2 span {
+      background: var(--ink);
+      color: #fff;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace
+    }
+
+    .step>p {
+      color: var(--grey);
+      font-size: 13px;
+      margin-bottom: 12px
+    }
+
+    .search {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+      background: #fff
+    }
+
+    .seg {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+      flex-wrap: wrap
+    }
+
+    .seg button {
+      flex: 1;
+      min-width: 110px
+    }
+
+    .seg button[aria-pressed=true] {
+      background: var(--ink);
+      color: #fff
+    }
+
+    .list {
+      max-height: 340px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 4px
+    }
+
+    .grp {
+      position: sticky;
+      top: 0;
+      background: var(--mist);
+      font: 500 11px 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--steel);
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--line)
+    }
+
+    .opt {
+      display: block;
+      width: 100%;
+      text-align: left;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+      padding: 9px 10px;
+      cursor: pointer
+    }
+
+    .opt:hover {
+      background: #f0f8fb
+    }
+
+    .opt[aria-pressed=true] {
+      background: var(--aqua-soft);
+      box-shadow: inset 4px 0 var(--ink)
+    }
+
+    .opt b {
+      display: block;
+      font-weight: 600
+    }
+
+    .opt small {
+      color: var(--grey);
+      font-size: 11.5px
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+      gap: 8px
+    }
+
+    .pick {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 4px;
+      padding: 8px;
+      text-align: left;
+      cursor: pointer
+    }
+
+    .pick svg {
+      width: 100%;
+      height: 46px;
+      margin-bottom: 4px
+    }
+
+    .pick b {
+      display: block;
+      font-size: 14px
+    }
+
+    .pick small {
+      color: var(--grey);
+      font-size: 11px
+    }
+
+    .pick[aria-pressed=true] {
+      border-color: var(--ink);
+      background: var(--aqua-soft);
+      box-shadow: 0 0 0 2px var(--ink)
+    }
+
+    .pick[disabled] {
+      opacity: .4;
+      cursor: not-allowed
+    }
+
+    .note {
+      font-size: 12.5px;
+      color: var(--steel);
+      margin-top: 10px;
+      min-height: 1.4em
+    }
+
+    .why {
+      font-size: 13px;
+      color: var(--grey);
+      margin-top: 10px;
+      border-left: 3px solid var(--aqua);
+      padding-left: 10px
+    }
+
+    .check {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 12px;
+      font-size: 13px
+    }
+
+    .campus {
+      padding: 18px;
+      margin-bottom: 60px
+    }
+
+    .campus-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px
+    }
+
+    .campus h2 {
+      font-size: 20px
+    }
+
+    .tablewrap {
+      overflow-x: auto
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 13px
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--line);
+      white-space: nowrap
+    }
+
+    th {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--steel);
+      font-weight: 500
+    }
+
+    td.m {
+      font-family: 'JetBrains Mono', monospace
+    }
+
+    .empty {
+      color: var(--grey);
+      padding: 14px 0
+    }
+
+    .rules {
+      padding: 18px;
+      margin-bottom: 24px
+    }
+
+    .rules h2 {
+      font-size: 20px;
+      margin-bottom: 10px
+    }
+
+    .rules ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--grey)
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--ink);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-size: 13.5px;
+      font-weight: 500;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s;
+      z-index: 2000;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .toast.on {
+      opacity: 1
+    }
+
+    footer {
+      background: var(--ink);
+      color: var(--grey-lt);
+      padding: 22px 0;
+      font-size: 12.5px
+    }
+
+    .chips {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 6px
+    }
+
+    .chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 999px;
+      padding: 5px 12px 5px 8px;
+      cursor: pointer;
+      font-size: 12.5px;
+      font-weight: 600;
+      white-space: nowrap
+    }
+
+    .chip svg {
+      width: 18px;
+      height: 18px
+    }
+
+    .chip:hover {
+      background: var(--mist)
+    }
+
+    .chip[aria-pressed=true] {
+      background: var(--ink);
+      color: #fff;
+      border-color: var(--ink)
+    }
+
+    .tiles {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+      gap: 8px;
+      max-height: 400px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 2px
+    }
+
+    .tgrp {
+      grid-column: 1/-1;
+      font: 500 11px 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--steel);
+      padding: 6px 2px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .tgrp:before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--c)
+    }
+
+    .tile {
+      position: relative;
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--c);
+      background: #fff;
+      border-radius: 5px;
+      padding: 10px 6px 8px;
+      cursor: pointer;
+      text-align: center;
+      transition: transform .12s, box-shadow .12s
+    }
+
+    .tile svg {
+      width: 46px;
+      height: 46px;
+      color: var(--c);
+      transition: transform .2s
+    }
+
+    .tile b {
+      display: block;
+      font-size: 13px;
+      margin-top: 4px
+    }
+
+    .tile small {
+      display: block;
+      color: var(--grey);
+      font-size: 10.5px;
+      line-height: 1.3;
+      margin-top: 2px
+    }
+
+    .tile:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(24, 27, 41, .14)
+    }
+
+    .tile:hover svg {
+      transform: scale(1.15) rotate(-4deg)
+    }
+
+    .tile[aria-pressed=true] {
+      background: var(--aqua-soft);
+      box-shadow: 0 0 0 2px var(--ink)
+    }
+
+    .tile[aria-pressed=true]:after {
+      content: "✓";
+      position: absolute;
+      top: 4px;
+      right: 6px;
+      font-size: 12px;
+      font-weight: 700
+    }
+
+    .detail {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 5px;
+      background: var(--mist);
+      border-left: 5px solid var(--c)
+    }
+
+    .detail svg {
+      width: 64px;
+      height: 64px;
+      flex: none;
+      color: var(--c)
+    }
+
+    .detail b {
+      display: block;
+      font-size: 15px
+    }
+
+    .detail small {
+      display: block;
+      color: var(--grey);
+      font-size: 12px;
+      margin-top: 2px
+    }
+
+    .type-ico {
+      width: 40px;
+      height: 40px;
+      color: var(--c);
+      flex: none
+    }
+
+    .stage-top .ttl {
+      display: flex;
+      gap: 12px;
+      align-items: center
+    }
+
+    .ph {
+      display: block;
+      position: relative;
+      overflow: hidden;
+      border-radius: 4px;
+      background: linear-gradient(#dcecf3, #f6fafc);
+      aspect-ratio: 4/3;
+      margin-bottom: 6px
+    }
+
+    .ph svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      transition: transform .25s, filter .25s
+    }
+
+    .tile:hover .ph svg {
+      transform: translateY(-3px) scale(1.07);
+      filter: drop-shadow(0 5px 4px rgba(24, 27, 41, .25))
+    }
+
+    .ph.big {
+      width: 170px;
+      flex: none;
+      margin: 0
+    }
+
+    .detail svg {
+      width: 100%
+    }
+
+    .detail .ph svg {
+      width: 100%;
+      height: 100%
+    }
+
+    #svg {
+      animation: rise .35s ease-out
+    }
+
+    @keyframes rise {
+      from {
+        opacity: .3;
+        transform: translateY(8px) scale(.98)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    /* ---- PREFA Reference Buttons (GET IN TOUCH & SAVE/SHARE PDF) ---- */
+    .intro-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .config-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .prefa-btn {
+      position: relative;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      text-transform: uppercase;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      padding: 8px 24px 8px 28px;
+      color: #fff;
+      transition: transform .15s ease, filter .15s ease;
+      min-height: 40px;
+      outline: none;
+    }
+
+    .prefa-btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.08);
+    }
+
+    .prefa-btn:active {
+      transform: translateY(1px);
+    }
+
+    .prefa-btn:focus-visible {
+      outline: 2px solid #fff;
+      outline-offset: 3px;
+    }
+
+    .prefa-btn>span {
+      display: inline-flex;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .prefa-btn svg {
+      width: 14px;
+      height: 9px;
+      flex: none;
+      display: block;
+      transition: transform .15s ease;
+    }
+
+    .prefa-btn:hover svg {
+      transform: translateX(-1px);
+    }
+
+    .prefa-btn::before,
+    .prefa-btn::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 80%;
+      display: block;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .prefa-btn::before {
+      left: 0;
+      transform: skew(-12deg);
+      transform-origin: left bottom;
+    }
+
+    .prefa-btn::after {
+      right: 0;
+    }
+
+    /* PRIMARY THEME BUTTON: GET IN TOUCH (#181B29 Theme Dark) */
+    .prefa-btn.red,
+    .prefa-btn.theme-dark {
+      color: #ffffff;
+    }
+
+    .prefa-btn.red::before,
+    .prefa-btn.red::after,
+    .prefa-btn.theme-dark::before,
+    .prefa-btn.theme-dark::after {
+      background-color: var(--ink);
+      /* #181B29 Theme Dark */
+      transition: background-color .18s ease;
+    }
+
+    .prefa-btn.red:hover::before,
+    .prefa-btn.red:hover::after,
+    .prefa-btn.theme-dark:hover::before,
+    .prefa-btn.theme-dark:hover::after {
+      background-color: var(--ink-soft);
+      /* #21263A */
+    }
+
+    .prefa-btn.red svg,
+    .prefa-btn.theme-dark svg {
+      color: var(--aqua);
+      /* #A0D3E6 Theme Accent Notch */
+      stroke: var(--aqua);
+    }
+
+    /* SECONDARY THEME BUTTON: SAVE/SHARE PDF (#A0D3E6 Theme Accent) */
+    .prefa-btn.grey,
+    .prefa-btn.theme-accent {
+      color: var(--ink);
+      /* #181B29 Theme Dark Text */
+    }
+
+    .prefa-btn.grey::before,
+    .prefa-btn.grey::after,
+    .prefa-btn.theme-accent::before,
+    .prefa-btn.theme-accent::after {
+      background-color: var(--aqua);
+      /* #A0D3E6 Theme Accent */
+      transition: background-color .18s ease;
+    }
+
+    .prefa-btn.grey:hover::before,
+    .prefa-btn.grey:hover::after,
+    .prefa-btn.theme-accent:hover::before,
+    .prefa-btn.theme-accent:hover::after {
+      background-color: #8CC7DE;
+    }
+
+    .prefa-btn.grey svg,
+    .prefa-btn.theme-accent svg {
+      color: var(--ink);
+      /* #181B29 Theme Dark Notch */
+      stroke: var(--ink);
+    }
+
+    @media (max-width: 680px) {
+      .intro-bar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .config-actions {
+        width: 100%;
+      }
+
+      .config-actions .prefa-btn {
+        flex: 1;
+      }
+    }
+
+    /* ---- Modal Dialogs ---- */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(18, 22, 36, 0.72);
+      backdrop-filter: blur(6px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s ease;
+    }
+
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: #ffffff;
+      color: var(--ink);
+      width: 100%;
+      max-width: 580px;
+      max-height: 90vh;
+      overflow-y: auto;
+      border-radius: 8px;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.45);
+      position: relative;
+      transform: translateY(18px) scale(0.97);
+      transition: transform .25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .modal-backdrop.open .modal-card {
+      transform: translateY(0) scale(1);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .modal-header h3 {
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0;
+      text-transform: uppercase;
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      border-radius: 4px;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      line-height: 1;
+      color: var(--grey);
+      transition: background .15s, color .15s;
+    }
+
+    .modal-close:hover {
+      background: var(--mist);
+      color: var(--ink);
+    }
+
+    .modal-body {
+      padding: 22px 24px;
+    }
+
+    .modal-summary-badge {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--mist);
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--ink);
+      border-radius: 6px;
+      padding: 12px 14px;
+      margin-bottom: 20px;
+    }
+
+    .modal-summary-badge svg {
+      width: 42px;
+      height: 42px;
+      flex: none;
+    }
+
+    .modal-summary-badge b {
+      display: block;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .modal-summary-badge small {
+      display: block;
+      color: var(--grey);
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    .share-options-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    .share-card {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 16px;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: border-color .15s, box-shadow .15s;
+    }
+
+    .share-card:hover {
+      border-color: var(--steel);
+      box-shadow: 0 4px 14px rgba(24, 27, 41, 0.08);
+    }
+
+    .share-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .share-card-header svg {
+      width: 20px;
+      height: 20px;
+      color: var(--ink);
+      flex: none;
+    }
+
+    .share-card p {
+      color: var(--grey);
+      font-size: 13px;
+      margin: 0;
+      line-height: 1.45;
+    }
+
+    .share-link-input-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .share-link-input {
+      flex: 1;
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--mist);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--ink);
+      outline: none;
+    }
+
+    .btn-action {
+      background: var(--ink);
+      color: #fff;
+      border: 1px solid var(--ink);
+      border-radius: 4px;
+      padding: 10px 18px;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: .02em;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+      transition: background .15s, transform .1s;
+    }
+
+    .btn-action:hover {
+      background: var(--ink-soft);
+      transform: translateY(-1px);
+    }
+
+    .btn-action.btn-red,
+    .btn-action.btn-primary {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #fff;
+    }
+
+    .btn-action.btn-red:hover,
+    .btn-action.btn-primary:hover {
+      background: var(--ink-soft);
+      border-color: var(--ink-soft);
+    }
+
+    .btn-action.btn-outline {
+      background: transparent;
+      color: var(--ink);
+      border-color: var(--line);
+    }
+
+    .btn-action.btn-outline:hover {
+      background: var(--mist);
+      border-color: var(--ink);
+    }
+
+    .contact-form {
+      display: grid;
+      gap: 12px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 500px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .form-group label {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--grey);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--ink);
+      background: #fff;
+      outline: none;
+      transition: border-color .15s;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      border-color: var(--ink);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .direct-contacts {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 13px;
+      color: var(--grey);
+    }
+
+    .direct-contacts a {
+      color: var(--ink);
+      font-weight: 600;
+      text-decoration: underline;
+    }
+
+    @media print {
+
+      header,
+      .steps,
+      .btn,
+      .prefa-btn,
+      .config-actions,
+      .stage-actions,
+      footer,
+      .toast,
+      .modal-backdrop,
+      .menu-btn {
+        display: none !important;
+      }
+
+      body {
+        background: #fff !important;
+        color: #000 !important;
+      }
+
+      .wrap {
+        max-width: 100% !important;
+        padding: 0 !important;
+      }
+
+      .layout {
+        display: block !important;
+      }
+
+      .stage {
+        position: static !important;
+        border: none !important;
+        box-shadow: none !important;
+      }
+
+      .view {
+        background: #f6fafc !important;
+        page-break-inside: avoid;
+      }
+
+      .view svg {
+        max-height: 380px !important;
+      }
+
+      .out {
+        border-top: 1px solid #ccc !important;
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="wrap bar">
+      <a class="logo" href="#top">
+        <!-- LOGO — cropped from the live site. Replace both <img> tags with
+           MetaMod's inline SVG lockup when you have the source file. -->
+        <img class="logo-mark"
+          src="data:image/png;base64,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"
+          alt="">
+        <img class="logo-word"
+          src="data:image/png;base64,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"
+          alt="MetaMod">
+      </a>
+      <button class="menu-btn" aria-expanded="false" aria-controls="nav">Menu</button>
+      <nav id="nav">
+
+        <div class="navitem">
+          <button class="navtrigger" aria-expanded="false" aria-controls="m-build">What we build
+            <svg class="caret" viewBox="0 0 10 6" aria-hidden="true">
+              <path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" />
+            </svg>
+          </button>
+          <div class="panel wide" id="m-build" hidden>
+            <div class="panel-grid">
+              <a href="classroom.html">
+                <svg class="thumb" viewBox="0 0 42 26" aria-hidden="true">
+                  <rect x="3" y="3" width="18" height="20" fill="none" stroke="currentColor" stroke-width="1.3" />
+                  <rect x="21" y="3" width="18" height="20" fill="none" stroke="currentColor" stroke-width="1.3" />
+                  <line x1="6" y1="3" x2="18" y2="3" stroke="var(--aqua)" stroke-width="2.6" />
+                  <line x1="24" y1="3" x2="36" y2="3" stroke="var(--aqua)" stroke-width="2.6" />
+                </svg>
+                <span><b>C-Series Classroom</b><small>One to eight rooms</small></span></a>
+              <a href="#lineup">
+                <svg class="thumb" viewBox="0 0 42 26" aria-hidden="true">
+                  <rect x="3" y="3" width="36" height="20" fill="none" stroke="currentColor" stroke-width="1.3" />
+                  <line x1="6" y1="3" x2="24" y2="3" stroke="var(--aqua)" stroke-width="2.6" />
+                  <line x1="27" y1="8" x2="35" y2="8" stroke="currentColor" stroke-width="1.3" />
+                </svg>
+                <span><b>A-Series Admin</b><small>Front office and staff space</small></span></a>
+              <a href="#lineup">
+                <svg class="thumb" viewBox="0 0 42 26" aria-hidden="true">
+                  <rect x="3" y="3" width="36" height="20" fill="none" stroke="currentColor" stroke-width="1.3" />
+                  <line x1="8" y1="3" x2="34" y2="3" stroke="var(--aqua)" stroke-width="2.6" />
+                  <line x1="3" y1="17" x2="39" y2="17" stroke="currentColor" stroke-width="1.1" />
+                </svg>
+                <span><b>M-Series Multipurpose</b><small>MPR, dining, gathering</small></span></a>
+              <a href="#lineup">
+                <svg class="thumb" viewBox="0 0 42 26" aria-hidden="true">
+                  <rect x="3" y="3" width="24" height="20" fill="none" stroke="currentColor" stroke-width="1.3" />
+                  <rect x="27" y="3" width="12" height="20" fill="none" stroke="currentColor" stroke-width="1.3" />
+                  <line x1="6" y1="3" x2="24" y2="3" stroke="var(--aqua)" stroke-width="2.6" />
+                </svg>
+                <span><b>L-Series Labs &amp; STEM</b><small>Science, CTE, robotics</small></span></a>
+              <a href="#lineup">
+                <svg class="thumb" viewBox="0 0 42 26" aria-hidden="true">
+                  <rect x="3" y="2" width="11" height="9" fill="none" stroke="currentColor" stroke-width="1.2" />
+                  <rect x="16" y="2" width="11" height="9" fill="none" stroke="currentColor" stroke-width="1.2" />
+                  <rect x="29" y="2" width="10" height="9" fill="none" stroke="currentColor" stroke-width="1.2" />
+                  <rect x="3" y="15" width="11" height="9" fill="none" stroke="currentColor" stroke-width="1.2" />
+                  <rect x="16" y="15" width="23" height="9" fill="none" stroke="currentColor" stroke-width="1.2" />
+                </svg>
+                <span><b>Full campus</b><small>The families combined, phased</small></span></a>
+              <a href="#compare">
+                <svg class="thumb" viewBox="0 0 42 26" aria-hidden="true">
+                  <line x1="3" y1="6" x2="39" y2="6" stroke="currentColor" stroke-width="1.2" />
+                  <line x1="3" y1="13" x2="39" y2="13" stroke="currentColor" stroke-width="1.2" />
+                  <line x1="3" y1="20" x2="39" y2="20" stroke="currentColor" stroke-width="1.2" />
+                  <line x1="15" y1="2" x2="15" y2="24" stroke="var(--aqua)" stroke-width="2" />
+                </svg>
+                <span><b>Compare buildings</b><small>Three side by side</small></span></a>
+            </div>
+            <div class="panel-foot">
+              <a href="#lineup">See the whole lineup</a>
+              <a href="#resources">Download the line brochure</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="navitem">
+          <button class="navtrigger" aria-expanded="false" aria-controls="m-why">Why MetaMod
+            <svg class="caret" viewBox="0 0 10 6" aria-hidden="true">
+              <path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" />
+            </svg>
+          </button>
+          <div class="panel panel-list" id="m-why" hidden>
+            <a href="#build">How we build</a>
+            <a href="#build">Schedule and delivery</a>
+            <a href="#credentials">DSA and code compliance</a>
+            <a href="#credentials">Procurement credentials</a>
+          </div>
+        </div>
+
+        <div class="navitem">
+          <button class="navtrigger" aria-expanded="false" aria-controls="m-res">Resources
+            <svg class="caret" viewBox="0 0 10 6" aria-hidden="true">
+              <path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" />
+            </svg>
+          </button>
+          <div class="panel panel-list right" id="m-res" hidden>
+            <a href="#resources"><span>Full line brochure</span><small>PDF</small></a>
+            <a href="#resources"><span>C-Series cut sheet</span><small>PDF</small></a>
+            <a href="#resources"><span>Finish and material palette</span><small>PDF</small></a>
+            <a href="#resources"><span>Site readiness checklist</span><small>PDF</small></a>
+            <a href="#resources"><span>Budget worksheet</span><small>XLSX</small></a>
+            <a href="#resources"><span>Prequalification packet</span><small>PDF</small></a>
+          </div>
+        </div>
+
+        <a class="navlink" href="#inquiry">Contact</a>
+        <a class="btn btn-accent nav-cta" href="#inquiry">Request a quote</a>
+      </nav>
+      <a class="btn btn-dark" href="#inquiry">Request a quote</a>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="intro">
+      <div class="intro-bar">
+        <div>
+          <h1>Customize Your Building</h1>
+          <p>Configure product, roofline, and architectural style with live 3D isometric rendering.</p>
+        </div>
+        <div class="config-actions">
+          <button class="prefa-btn theme-dark" id="btnTouch" type="button" aria-label="Get in touch with MetaMod">
+            <span>
+              <svg viewBox="0 0 11.04 7.36" aria-hidden="true">
+                <path d="M0,1.25H9.79V7.36" fill="none" stroke="currentColor" stroke-width="2.5" />
+              </svg>
+              GET IN TOUCH
+            </span>
+          </button>
+          <button class="prefa-btn theme-accent" id="btnSharePdf" type="button"
+            aria-label="Save or share PDF specification sheet">
+            <span>
+              <svg viewBox="0 0 11.04 7.36" aria-hidden="true">
+                <path d="M0,1.25H9.79V7.36" fill="none" stroke="currentColor" stroke-width="2.5" />
+              </svg>
+              SAVE/SHARE PDF
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <section class="card stage" aria-label="Preview">
+        <div class="stage-top">
+          <div class="ttl"><svg class="type-ico" id="outIco" viewBox="0 0 48 48" fill="none" stroke="currentColor"
+              stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
+            <div>
+              <div class="name" id="outName"></div><small id="outType"></small>
+            </div>
+          </div>
+        </div>
+        <div class="view"><svg id="svg" viewBox="0 0 600 340" role="img" aria-label="Building preview"></svg></div>
+        <div class="out">
+          <div class="fmt"><small>Proposal / sales</small><b id="f1"></b></div>
+          <div class="fmt mono"><small>Drawings / schedules / spec sheets</small><b id="f2"></b></div>
+          <p class="why" id="why"></p>
+        </div>
+      </section>
+
+      <div class="steps">
+        <section class="card step" aria-labelledby="s1">
+          <h2 id="s1"><span>1</span>Building (Tier 1)</h2>
+          <p>The product name identifies the building type only and never changes with roof or style.</p>
+          <div class="seg" role="group" aria-label="Product line">
+            <button class="btn" data-line="campus" aria-pressed="true">Campus</button>
+            <button class="btn" data-line="housing" aria-pressed="false">Student housing</button>
+          </div>
+          <div class="chips" id="chips" role="group" aria-label="Filter by category"></div>
+          <div class="tiles" id="list"></div>
+          <div class="detail" id="detail" aria-live="polite"></div>
+        </section>
+
+        <section class="card step" aria-labelledby="s2">
+          <h2 id="s2"><span>2</span>Roofline (Tier 2)</h2>
+          <p>Shared across every product. Some rooflines only fit certain style tracks.</p>
+          <div class="cards" id="roofs"></div>
+          <div class="note" id="roofNote" aria-live="polite"></div>
+        </section>
+
+        <section class="card step" aria-labelledby="s3">
+          <h2 id="s3"><span>3</span>Style (Tier 3)</h2>
+          <p>Kept literal — plain English, no invented names.</p>
+          <div class="cards" id="styles"></div>
+          <label class="check" id="rlWrap"><input type="checkbox" id="showRoof"> Name the roofline (Traditional / Hybrid
+            usually omit it)</label>
+        </section>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <div class="wrap">MetaMod — Shapeshifter open-source building system. Naming data from the MetaMod Naming Convention
+      workbook.</div>
+  </footer>
+  <div class="toast" id="toast" role="status"></div>
+
+  <!-- Modal: GET IN TOUCH -->
+  <div class="modal-backdrop" id="modalTouch" role="dialog" aria-modal="true" aria-labelledby="modalTouchTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalTouchTitle">Get in Touch</h3>
+        <button class="modal-close" data-close="modalTouch" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-summary-badge" id="touchBadge">
+          <svg id="touchIco" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
+          <div>
+            <b id="touchName">MetaMod Helix</b>
+            <small id="touchCode">960sf classroom, expandable wings • Code: Helix / Crest / MOD</small>
+          </div>
+        </div>
+        <form class="contact-form" id="touchForm" onsubmit="return false;">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cName">Your Name *</label>
+              <input type="text" id="cName" placeholder="e.g. Sarah Jenkins" required>
+            </div>
+            <div class="form-group">
+              <label for="cEmail">Work Email *</label>
+              <input type="email" id="cEmail" placeholder="e.g. sjenkins@district.edu" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cPhone">Phone Number</label>
+              <input type="tel" id="cPhone" placeholder="e.g. (555) 234-5678">
+            </div>
+            <div class="form-group">
+              <label for="cOrg">District / Organization</label>
+              <input type="text" id="cOrg" placeholder="e.g. Unified School District">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="cMsg">Project Details &amp; Scope</label>
+            <textarea id="cMsg" rows="3"
+              placeholder="Tell us about your campus, timeline, and site requirements…"></textarea>
+          </div>
+          <button class="btn-action btn-primary" id="submitInquiry" type="submit">
+            <svg viewBox="0 0 11.04 7.36" style="width:13px;height:9px;" aria-hidden="true">
+              <path d="M0,1.25H9.79V7.36" fill="none" stroke="currentColor" stroke-width="2.5" />
+            </svg>
+            SUBMIT PROJECT INQUIRY
+          </button>
+        </form>
+        <div class="direct-contacts">
+          <span>Need immediate assistance?</span>
+          <div>
+            <a href="mailto:info@metamodulars.com" id="mailLink">info@metamodulars.com</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: SAVE / SHARE PDF -->
+  <div class="modal-backdrop" id="modalPdf" role="dialog" aria-modal="true" aria-labelledby="modalPdfTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalPdfTitle">Save / Share PDF</h3>
+        <button class="modal-close" data-close="modalPdf" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-summary-badge" id="shareBadge">
+          <svg id="shareIco" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
+          <div>
+            <b id="shareName">MetaMod Helix</b>
+            <small id="shareCode">Helix / Crest / MOD</small>
+          </div>
+        </div>
+        <div class="share-options-grid">
+          <div class="share-card">
+            <div class="share-card-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+                <polyline points="10 9 9 9 8 9" />
+              </svg>
+              <span>Download Architectural Specification Sheet (PDF)</span>
+            </div>
+            <p>Generate a clean, high-resolution specification document containing the 3D isometric drawing, product
+              tiers, schedule codes, and design rationale.</p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="btn-action btn-primary" id="btnExportPdf" type="button">
+                <svg viewBox="0 0 11.04 7.36" style="width:13px;height:9px;" aria-hidden="true">
+                  <path d="M0,1.25H9.79V7.36" fill="none" stroke="currentColor" stroke-width="2.5" />
+                </svg>
+                DOWNLOAD PDF
+              </button>
+              <button class="btn-action btn-outline" id="btnPrintPdf" type="button">Print Spec Sheet</button>
+            </div>
+          </div>
+
+          <div class="share-card">
+            <div class="share-card-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" aria-hidden="true">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+              </svg>
+              <span>Share Configuration Link</span>
+            </div>
+            <p>Anyone with this direct link will immediately view this exact building configuration, roofline, and style
+              track.</p>
+            <div class="share-link-input-group">
+              <input class="share-link-input" id="shareUrlInput" type="text" readonly>
+              <button class="btn-action btn-outline" id="btnCopyShareUrl" type="button">Copy Link</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ---------- data (from the naming workbook) ---------- */
+    // f: footprint scale, fl: floors
+    const CAMPUS = [
+      ["Core Instructional Spaces", [
+        ["960sf classroom, expandable wings", "Helix", "A helix is the literal structural building block of a chain — the natural image for an expandable, repeatable classroom unit.", .85, 1],
+        ["Two-story classroom building", "Zenith", "Peak/height connotation, matching the stacked vertical configuration.", .8, 2],
+        ["Kindergarten / TK classroom", "Nova", "A new star — bright and age-appropriate for the youngest learners.", .7, 1],
+        ["Special education classroom", "Aegis", "Zeus/Athena's protective shield — signals safety and support.", .75, 1],
+        ["Library", "Athena", "Classical word for a place of learning and literary study.", .9, 1],
+        ["Makerspace", "Ember", "A live spark/fire image — hands-on and active.", .8, 1],
+        ["Science room", "Quantum", "Science-coded shorthand that reads instantly on a spec sheet.", .8, 1]]],
+      ["Student Life & Support Services", [
+        ["School office / administration building", "Axis", "The point the campus turns on — central and technical-sounding.", .8, 1],
+        ["MPR / gymnasium", "Coliseum", "Mythic-scale gathering and competition space.", 1, 1],
+        ["Culinary academy space", "Prometheus", "The fire-bringer of Greek myth — fits a space built around fire and food.", .85, 1],
+        ["Cafeteria / dining commons", "Elysium", "The restorative, welcoming gathering place of Greek myth.", .95, 1],
+        ["Central kitchen / food service building", "Ceres", "Roman goddess of agriculture and grain.", .85, 1],
+        ["Performing arts center / auditorium", "Muse", "The Muses, Greek goddesses of the arts.", 1, 1],
+        ["Music / band room", "Lyra", "The lyre constellation — reads as music instantly.", .8, 1],
+        ["Visual arts studio", "Aurora", "Goddess of the dawn — light, color and creativity.", .8, 1],
+        ["Health office / student wellness center", "Panacea", "Goddess of universal remedy — health and healing, not clinical.", .7, 1],
+        ["Parent / family resource center", "Haven", "A welcoming, supportive word families respond to.", .75, 1]]],
+      ["Athletics & Career Technical Education", [
+        ["PE / locker room support building", "Titan", "Raw strength, a natural fit for athletic support space.", .85, 1],
+        ["Career Technical Education (CTE) building", "Vanguard", "Forward-looking — CTE leads students into next-generation careers.", .95, 1],
+        ["Agriculture lab / greenhouse (FFA)", "Terra", "The Roman earth goddess — clearest agricultural association.", .85, 1]]],
+      ["Facilities & Operations", [
+        ["Maintenance / facilities / custodial building", "Atlas", "Bears the world — the building that keeps every other building running.", .8, 1],
+        ["Transportation / bus facility", "Voyager", "Motion-forward word for a facility built around moving students.", .95, 1],
+        ["Standalone restroom building", "Oasis", "A refreshing, calming word scaled to a small utility building.", .55, 1],
+        ["Campus safety / security office", "Vigil", "Evokes watchfulness and protection without a heavy-handed label.", .55, 1],
+        ["District / board administration building", "Citadel", "The fortified seat of governance — weightier than a single school's Axis.", .95, 2]]],
+      ["Community College", [
+        ["Student services building (admissions, aid, advising)", "Compass", "Navigational — where students get guided toward enrollment and support.", .9, 1],
+        ["Learning commons / tutoring center", "Meridian", "A defining line of orientation — a hub for academic support.", .9, 1]]],
+      ["Hybrid", [
+        ["Hybrid options", "Protean", "Readily taking on different shapes, roles, or physical forms.", .85, 1]]]
+    ];
+    const HOUSING = [
+      ["Student Housing / Dormitory Line", [
+        ["Single studio unit", "Halcyon", "Private, individual living unit.", .55, 1],
+        ["2–4 person suite", "Orion", "Shared suite configuration; Orion is a recognizable 'grouping' constellation.", .7, 1],
+        ["RA / staff resident unit", "Sentinel", "Signals oversight/support role within the housing complex.", .6, 1],
+        ["Two-story residence building", "Vertex", "Vertical / stacked residential configuration.", .8, 2],
+        ["Community / commons building (lounge, laundry, kitchen)", "Agora", "Shared social and support space; classical public gathering place.", .9, 1]]]
+    ];
+    const ROOFS = [
+      { k: "gable", n: "Crest", shape: "Gable", styles: ["MOD", "TRAD", "HYB"], why: "The peak line reads immediately; a plain architectural word describing the form." },
+      { k: "hip", n: "Summit", shape: "Hip", styles: ["MOD", "TRAD", "HYB"], why: "Neutral enough to pair with any style track." },
+      { k: "shed", n: "Slope", shape: "Shed", styles: ["MOD", "HYB"], why: "Literal and clean; the workhorse roofline of the contemporary track." },
+      { k: "butterfly", n: "Wing", shape: "Butterfly", styles: ["MOD"], why: "The one roofline that carries personality — butterfly roofs read as a design statement." },
+      { k: "monitor", n: "Loft", shape: "Monitor / clerestory", styles: ["MOD", "HYB"], why: "Signals the raised, light-gathering quality of a monitor roof." }
+    ];
+    const STYLES = [
+      { c: "MOD", n: "Modern", note: "Modern / Contemporary" },
+      { c: "TRAD", n: "Traditional", note: "Architects and DSA reviewers need the style descriptor to be self-evident." },
+      { c: "HYB", n: "Hybrid", note: "Combines Modern and Traditional elements at the designer's discretion." }
+    ];
+
+
+    const ICONS = {
+      Helix: '<path d="M14 6c0 8 20 8 20 18s-20 10-20 18M34 6c0 8-20 8-20 18s20 10 20 18M17 11h14M16 24h16M17 37h14"/>',
+      Zenith: '<rect x="12" y="16" width="24" height="26"/><path d="M12 29h24M24 4l-6 8h12zM18 22h4M26 22h4M18 35h4M26 35h4"/>',
+      Nova: '<path d="M24 5l4 15 15 4-15 4-4 15-4-15-15-4 15-4z"/>',
+      Aegis: '<path d="M24 6l14 5v13c0 9-7 15-14 18-7-3-14-9-14-18V11z"/><path d="M24 16v14M17 23h14"/>',
+      Athena: '<path d="M24 14c-6-4-13-4-18-2v24c5-2 12-2 18 2 6-4 13-4 18-2V12c-5-2-12-2-18 2zM24 14v24"/>',
+      Ember: '<path d="M24 5c4 9 12 12 12 23a12 12 0 0 1-24 0c0-6 4-8 6-14 2 4 4 4 6-9z"/><path d="M24 40c-4 0-6-3-6-6 0-4 4-5 6-10 2 5 6 6 6 10 0 3-2 6-6 6z"/>',
+      Quantum: '<ellipse cx="24" cy="24" rx="18" ry="7"/><ellipse cx="24" cy="24" rx="18" ry="7" transform="rotate(60 24 24)"/><ellipse cx="24" cy="24" rx="18" ry="7" transform="rotate(120 24 24)"/><circle cx="24" cy="24" r="2.5" fill="currentColor"/>',
+      Axis: '<path d="M10 40V20h28v20M5 40h38M24 20V5M24 5h11v7H24M20 40v-9h8v9M15 26h3M30 26h3"/>',
+      Coliseum: '<path d="M5 16h38v24H5zM5 23h38M11 40V32a4 4 0 0 1 8 0v8M20 40V32a4 4 0 0 1 8 0v8M29 40V32a4 4 0 0 1 8 0v8"/>',
+      Prometheus: '<path d="M14 30a7 7 0 0 1 2-13 8 8 0 0 1 16 0 7 7 0 0 1 2 13zM15 30v11h18V30M20 34v4M28 34v4"/>',
+      Elysium: '<circle cx="26" cy="24" r="11"/><circle cx="26" cy="24" r="6"/><path d="M6 7v10c0 2 2 3 4 3V41M10 7v10M38 41V8c-4 2-6 8-6 14h6"/>',
+      Ceres: '<path d="M24 43V12M24 18c-5-1-8-4-8-9 5 0 8 4 8 9zM24 18c5-1 8-4 8-9-5 0-8 4-8 9zM24 29c-5-1-8-4-8-9 5 0 8 4 8 9zM24 29c5-1 8-4 8-9-5 0-8 4-8 9zM24 40c-5-1-8-4-8-9 5 0 8 4 8 9zM24 40c5-1 8-4 8-9-5 0-8 4-8 9z"/>',
+      Muse: '<path d="M5 6h38M9 6c0 12 5 22 7 32M39 6c0 12-5 22-7 32M5 42h38M24 16l2.5 5 5.5.8-4 4 1 5.5-5-2.7-5 2.7 1-5.5-4-4 5.5-.8z"/>',
+      Lyra: '<path d="M13 6c-4 12-1 26 11 32 12-6 15-20 11-32M24 12v28M19 10v24M29 10v24M16 42h16M10 10h6M32 10h6"/>',
+      Aurora: '<path d="M24 7C13 7 6 15 6 24c0 8 6 14 14 14 3 0 4-2 3-4-1-3 1-5 4-5h6c5 0 9-3 9-8C42 13 34 7 24 7z"/><circle cx="15" cy="21" r="2.5"/><circle cx="23" cy="14" r="2.5"/><circle cx="32" cy="17" r="2.5"/>',
+      Panacea: '<circle cx="24" cy="24" r="18"/><path d="M24 13v22M13 24h22"/>',
+      Haven: '<path d="M5 24L24 7l19 17M11 21v20h26V21"/><path d="M24 37c-7-4-7-9-4-10 2-1 4 1 4 3 0-2 2-4 4-3 3 1 3 6-4 10z"/>',
+      Titan: '<path d="M4 24h40M10 15v18M16 11v26M32 11v26M38 15v18"/>',
+      Vanguard: '<circle cx="24" cy="24" r="7"/><circle cx="24" cy="24" r="14" stroke-width="6" stroke-dasharray="5.5 5.5"/><circle cx="24" cy="24" r="11"/>',
+      Terra: '<path d="M24 42V22M24 28c-9 0-13-5-13-13 9 0 13 5 13 13zM24 22c0-9 5-13 13-13 0 9-5 13-13 13zM13 42h22"/>',
+      Atlas: '<path d="M31 6a9 9 0 0 0-8 12L7 34l7 7 16-16a9 9 0 0 0 12-8l-6 6-6-1-1-6 6-6z"/>',
+      Voyager: '<rect x="6" y="10" width="36" height="24" rx="3"/><path d="M6 24h36M12 16h9v8h-9zM27 16h9v8h-9z"/><circle cx="14" cy="36" r="3.5" fill="#fff"/><circle cx="34" cy="36" r="3.5" fill="#fff"/>',
+      Oasis: '<circle cx="13" cy="9" r="3.5"/><path d="M8 17h10v13h-3v11h-4V30H8zM28 41l5-17h-3l4-8h0M34 17l-7 20h14z"/><circle cx="34" cy="9" r="3.5"/>',
+      Vigil: '<path d="M3 24c6-11 14-15 21-15s15 4 21 15c-6 11-14 15-21 15S9 35 3 24z"/><circle cx="24" cy="24" r="7"/><circle cx="24" cy="24" r="2.5" fill="currentColor"/>',
+      Citadel: '<path d="M7 41V15h7v5h4v-5h4v5h4v-5h4v5h4v-5h7v26zM20 41v-8a4 4 0 0 1 8 0v8M24 15V5h8v4h-8"/>',
+      Compass: '<circle cx="24" cy="24" r="18"/><path d="M31 17l-5 10-10 5 5-10z"/><circle cx="24" cy="24" r="1.5" fill="currentColor"/>',
+      Meridian: '<circle cx="24" cy="24" r="18"/><ellipse cx="24" cy="24" rx="7" ry="18"/><path d="M6 24h36M9 14h30M9 34h30"/>',
+      Protean: '<circle cx="17" cy="17" r="9"/><rect x="24" y="23" width="17" height="17" rx="2"/><path d="M8 42l9-15 9 15z"/>',
+      Halcyon: '<path d="M6 38V12M6 30h36v8M42 38v-8M6 38h36M10 24h13a4 4 0 0 1 4 4v2H10z"/>',
+      Orion: '<path d="M12 8l10 14M36 10l-13 12M22 22l-3 8M22 22l4 8M19 30l-5 12M26 30l8 12"/><circle cx="12" cy="8" r="2.5" fill="currentColor"/><circle cx="36" cy="10" r="2.5" fill="currentColor"/><circle cx="22" cy="22" r="2.5" fill="currentColor"/><circle cx="19" cy="30" r="2.5" fill="currentColor"/><circle cx="26" cy="30" r="2.5" fill="currentColor"/><circle cx="14" cy="42" r="2.5" fill="currentColor"/><circle cx="34" cy="42" r="2.5" fill="currentColor"/>',
+      Sentinel: '<path d="M24 5l5.5 11.5 12.5 1.5-9.2 8.6 2.4 12.4L24 32.8 12.8 39l2.4-12.4L6 18l12.5-1.5z"/>',
+      Vertex: '<path d="M7 20L24 7l17 13M12 18v23h24V18M12 30h24M19 24h3M26 24h3M19 36h3M26 36h3"/>',
+      Agora: '<path d="M5 15L24 6l19 9zM10 19v19M19 19v19M29 19v19M38 19v19M5 42h38"/>'
+    };
+    const CATCOL = { "Core Instructional Spaces": "#2F7FB0", "Student Life & Support Services": "#C2703A", "Athletics & Career Technical Education": "#3B8F5A", "Facilities & Operations": "#7A6A55", "Community College": "#7B5BB0", "Hybrid": "#D0479A", "Student Housing / Dormitory Line": "#1F8E8E" };
+    const CATSHORT = { "Core Instructional Spaces": "Instruction", "Student Life & Support Services": "Student life", "Athletics & Career Technical Education": "Athletics & CTE", "Facilities & Operations": "Facilities", "Community College": "College", "Hybrid": "Hybrid", "Student Housing / Dormitory Line": "Housing" };
+    const catOf = n => [...CAMPUS, ...HOUSING].find(g => g[1].some(p => p[1] === n))[0];
+    const ico = (n, cls) => `<svg ${cls || ""} viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ""}</svg>`;
+
+    /* ---------- state ---------- */
+    const $ = id => document.getElementById(id);
+    const all = () => [...CAMPUS, ...HOUSING].flatMap(g => g[1]);
+    const st = { cat: "all", line: "campus", prod: "Helix", roof: "gable", style: "MOD", showRoof: null };
+    const prodOf = n => all().find(p => p[1] === n);
+    const roofOf = k => ROOFS.find(r => r.k === k);
+    const styleOf = c => STYLES.find(s => s.c === c);
+    const nameRoof = () => st.showRoof === null ? st.style === "MOD" : st.showRoof;
+
+    function descriptor(c) {
+      const p = prodOf(c.prod), r = roofOf(c.roof), s = styleOf(c.style);
+      const show = c.showRoof === null ? c.style === "MOD" : c.showRoof;
+      return {
+        p, r, s, show,
+        long: show ? `MetaMod ${p[1]} — ${r.n} roofline — ${s.n}` : `MetaMod ${p[1]} — ${s.n}`,
+        short: show ? `${p[1]} / ${r.n} / ${s.c}` : `${p[1]} / ${s.c}`
+      };
+    }
+
+    /* ---------- preview ---------- */
+    function palette(s) {
+      return {
+        MOD: { wall: "#E9ECEF", roof: "#2B3042", glass: "#7FB4CC", trim: "#5D7687" },
+        TRAD: { wall: "#C98E6F", roof: "#6B3F33", glass: "#A9CFDD", trim: "#F4EADF" },
+        HYB: { wall: "#D8CBB9", roof: "#3B4A57", glass: "#8FBFD3", trim: "#8E6E58" }
+      }[s];
+    }
+    /* ---------- isometric 3D renderer ---------- */
+    const UN = 10, CXp = .866 * UN, CYp = .5 * UN;
+    const hx = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+    const shade = (h, f) => '#' + hx(h).map(v => Math.max(0, Math.min(255, Math.round(f < 1 ? v * f : v + (255 - v) * (f - 1)))).toString(16).padStart(2, '0')).join('');
+    const tint = (h, t) => '#' + hx(h).map(v => Math.round(v + (255 - v) * t).toString(16).padStart(2, '0')).join('');
+    /* [x,y,w,d,h,opts] volumes in metres-ish units; f = features [name,volumeIndex,arg] */
+    const FORMS = {
+      Helix: { v: [[0, 0, 6, 5, 3], [6, 0, 6, 5, 3]], f: [["ghost"]] },
+      Zenith: { v: [[0, 0, 10, 5, 6, { fl: 2 }]] },
+      Nova: { v: [[0, 0, 6, 5, 3]], f: [["canopy"]] },
+      Aegis: { v: [[0, 0, 7, 5, 3]], f: [["ramp"]] },
+      Athena: { v: [[0, 0, 8, 5, 3], [8, 0, 4, 5, 4]], f: [["cornice"]] },
+      Ember: { v: [[0, 0, 8, 6, 3], [8, 2, 3, 4, 2]], f: [["chimney"], ["bays", 1, 1]] },
+      Quantum: { v: [[0, 0, 8, 5, 3]], f: [["vents"]] },
+      Axis: { v: [[0, 0, 9, 5, 3]], f: [["flag"], ["canopy"]] },
+      Coliseum: { v: [[0, 0, 13, 9, 5.5, { win: "high", nodoor: 1 }]], f: [["bays", 0, 2]] },
+      Prometheus: { v: [[0, 0, 7, 5, 3]], f: [["chimney"], ["canopy"]] },
+      Elysium: { v: [[0, 0, 11, 6, 3, { win: "panels" }]], f: [["canopy"]] },
+      Ceres: { v: [[0, 0, 8, 5, 3], [8, 0, 3, 4, 2.4]], f: [["chimney"], ["chimney", 1]] },
+      Muse: { v: [[0, 2, 6, 5, 3], [6, 0, 7, 8, 6.5, { win: "none", nodoor: 1 }]], f: [["canopy"]] },
+      Lyra: { v: [[0, 0, 6, 5, 3], [6, 1, 3, 3, 2]], f: [["beacon", 1]] },
+      Aurora: { v: [[0, 0, 7, 5, 3]], f: [["skylights"]] },
+      Panacea: { v: [[0, 0, 6, 5, 3]], f: [["cross"]] },
+      Haven: { v: [[0, 0, 6, 5, 3], [6, 2, 3, 4, 2.4]], f: [["canopy"]] },
+      Titan: { v: [[0, 0, 10, 6, 3]], f: [["vents"]] },
+      Vanguard: { v: [[0, 0, 9, 6, 3.5], [9, 0, 4, 6, 3, { nodoor: 1 }]], f: [["bays", 1, 2]] },
+      Terra: { v: [[0, 0, 10, 5, 2.6, { glass: 1, win: "panels" }], [10, 0, 3, 4, 2.6]], f: [] },
+      Atlas: { v: [[0, 0, 9, 6, 3, { nodoor: 1 }]], f: [["bays", 0, 3]] },
+      Voyager: { v: [[0, 0, 13, 6, 3.2, { nodoor: 1 }]], f: [["bays", 0, 4]] },
+      Oasis: { v: [[0, 0, 4, 3, 2.6]], f: [["vents"]] },
+      Vigil: { v: [[0, 0, 4, 3, 2.6]], f: [["beacon"]] },
+      Citadel: { v: [[0, 0, 5, 5, 3], [5, 0, 5, 5, 6.5, { fl: 2 }], [10, 0, 5, 5, 3]], f: [["flag", 1]] },
+      Compass: { v: [[0, 0, 8, 5, 3], [8, 0, 3, 5, 3]], f: [["canopy"]] },
+      Meridian: { v: [[0, 0, 9, 5, 3, { win: "panels" }]], f: [] },
+      Protean: { v: [[0, 0, 4, 4, 3], [4, 2, 4, 4, 3], [8, 0, 4, 4, 3]], f: [] },
+      Halcyon: { v: [[0, 0, 4, 4, 2.6]], f: [] },
+      Orion: { v: [[0, 0, 4, 4, 2.6], [5, 0, 4, 4, 2.6], [2.5, 5, 4, 4, 2.6]], f: [] },
+      Sentinel: { v: [[0, 0, 5, 4, 2.8]], f: [["flag"]] },
+      Vertex: { v: [[0, 0, 8, 5, 6, { fl: 2 }]], f: [["balcony"]] },
+      Agora: { v: [[0, 0, 10, 6, 3]], f: [["colonnade"]] }
+    };
+    function iso(name, roofK, pal, gcol, minW, ratio, ground) {
+      const F0 = FORMS[name] || FORMS.Helix, F = { v: F0.v, f: F0.f || [] }, out = [], pts = [];
+      const pr = c => c.map(p => [(p[0] - p[1]) * CXp, (p[0] + p[1]) * CYp - p[2] * UN]);
+      const P = (c, fill, ex) => { const q = pr(c); pts.push(...q); out.push(`<polygon points="${q.map(a => a[0].toFixed(1) + "," + a[1].toFixed(1)).join(" ")}" fill="${fill}" stroke="rgba(10,15,30,.35)" stroke-width=".5" stroke-linejoin="round" ${ex || ""}/>`) };
+      const Ln = (a, b, col, w) => { const q = pr([a, b]); pts.push(...q); out.push(`<line x1="${q[0][0].toFixed(1)}" y1="${q[0][1].toFixed(1)}" x2="${q[1][0].toFixed(1)}" y2="${q[1][1].toFixed(1)}" stroke="${col}" stroke-width="${w || 1}" stroke-linecap="round"/>`) };
+      const vols = F.v.map(a => ({ x: a[0], y: a[1], w: a[2], d: a[3], h: a[4], ...(a[5] || {}) }));
+      const fx = (n, i) => F.f.filter(f => f[0] === n && (f[1] || 0) === i);
+      const hasF = n => F.f.some(f => f[0] === n);
+      const gx0 = Math.min(...vols.map(v => v.x)) - 1.6, gy0 = Math.min(...vols.map(v => v.y)) - 1.6,
+        gx1 = Math.max(...vols.map(v => v.x + v.w)) + 1.6 + (hasF("ghost") ? 6 : 0), gy1 = Math.max(...vols.map(v => v.y + v.d)) + 2.6;
+      if (ground) {
+        P([[gx0, gy0, 0], [gx1, gy0, 0], [gx1, gy1, 0], [gx0, gy1, 0]], gcol);
+        P([[gx1, gy0, 0], [gx1, gy1, 0], [gx1, gy1, -.5], [gx1, gy0, -.5]], shade(gcol, .8));
+        P([[gx0, gy1, 0], [gx1, gy1, 0], [gx1, gy1, -.5], [gx0, gy1, -.5]], shade(gcol, .92));
+      }
+      const box = (x, y, w, d, z0, h, wc, tc) => {
+        P([[x, y + d, z0], [x + w, y + d, z0], [x + w, y + d, z0 + h], [x, y + d, z0 + h]], shade(wc, 1));
+        P([[x + w, y, z0], [x + w, y + d, z0], [x + w, y + d, z0 + h], [x + w, y, z0 + h]], shade(wc, .8));
+        P([[x, y, z0 + h], [x + w, y, z0 + h], [x + w, y + d, z0 + h], [x, y + d, z0 + h]], tc || shade(wc, 1.2));
+      };
+      const drawVol = (v, i) => {
+        const z0 = v.z0 || 0, zt = z0 + v.h, X1 = v.x + v.w, Y1 = v.y + v.d, ym = v.y + v.d / 2;
+        const rk = v.flat ? "flat" : roofK;
+        const r = Math.min(v.d * .42, 2.4), sr = Math.min(1.4, v.d * .3);
+        const wc = v.glass ? pal.glass : pal.wall, fl = v.fl || 1, fh = v.h / fl;
+        const RF = (face, u0, u1, v0, v1) => face === "L"
+          ? [[v.x + u0, Y1, z0 + v0], [v.x + u1, Y1, z0 + v0], [v.x + u1, Y1, z0 + v1], [v.x + u0, Y1, z0 + v1]]
+          : [[X1, v.y + u0, z0 + v0], [X1, v.y + u1, z0 + v0], [X1, v.y + u1, z0 + v1], [X1, v.y + u0, z0 + v1]];
+        const bf = rk === "butterfly";
+        // walls
+        P(RF("L", 0, v.w, 0, v.h + (bf ? sr : 0)), shade(wc, 1));
+        P(bf ? [[X1, v.y, z0], [X1, Y1, z0], [X1, Y1, zt + sr], [X1, ym, zt], [X1, v.y, zt + sr]] : RF("R", 0, v.d, 0, v.h), shade(wc, .8));
+        if (rk === "gable") P([[X1, v.y, zt], [X1, Y1, zt], [X1, ym, zt + r]], shade(wc, .8));
+        if (rk === "shed") P([[X1, v.y, zt], [X1, Y1, zt], [X1, v.y, zt + sr]], shade(wc, .8));
+        // openings
+        const faces = [["L", v.w, 1], ["R", v.d, .8]];
+        faces.forEach(([f, len, sh]) => {
+          const win = v.win || "std", gl = shade(pal.glass, sh), tr = pal.trim;
+          if (win === "none") return;
+          if (win === "panels") {
+            if (f === "R" && !v.glass) return;
+            for (let u = .4; u + 1.3 <= len - .3; u += 1.5)P(RF(f, u, u + 1.3, .3, v.h - .3), gl); return
+          }
+          if (win === "high") { P(RF(f, .8, len - .8, v.h * .62, v.h * .88), gl); return }
+          if (len < 2) { P(RF(f, len * .3, len * .7, v.h * .35, v.h * .7), gl); return }
+          for (let k = 0; k < fl; k++) {
+            const b = k * fh;
+            if (v.fl > 1 || fl > 1) { }
+            if (st.style === "MOD" || (st.style === "HYB" && f === "R")) {
+              const n = Math.max(1, Math.round((len - 1.4) / 2.2)), w = (len - 1.4) / n;
+              for (let j = 0; j < n; j++)P(RF(f, .7 + j * w + .06, .7 + (j + 1) * w - .06, b + fh * .32, b + fh * .78), gl);
+            } else {
+              const n = Math.max(1, Math.floor((len - .6) / 2)), sl = len / n, ww = st.style === "HYB" ? 1.3 : .95;
+              for (let j = 0; j < n; j++)P(RF(f, sl * (j + .5) - ww / 2, sl * (j + .5) + ww / 2, b + fh * .28, b + fh * .8), gl, `stroke="${tr}" stroke-width="1.2"`);
+            }
+          }
+          if (fl > 1) P(RF(f, 0, len, fh - .1, fh + .1), tr);
+          if (st.style !== "MOD") P(RF(f, 0, len, v.h - .28, v.h), tr);
+        });
+        // door
+        if (i === 0 && !v.nodoor) { const dw = 1.1, cu = v.w * .5; P(RF("L", cu - dw / 2, cu + dw / 2, 0, Math.min(2.1, fh * .72)), pal.trim) }
+        // bays
+        fx("bays", i).forEach(b => {
+          const n = b[2] || 2, sl = (v.w - 1) / n;
+          for (let j = 0; j < n; j++) {
+            P(RF("L", .5 + sl * j + .15, .5 + sl * (j + 1) - .15, 0, v.h * .78), shade(pal.trim, 1.15));
+            for (let t = 1; t < 4; t++)Ln([v.x + .5 + sl * j + .15, Y1, z0 + v.h * .78 * t / 4], [v.x + .5 + sl * (j + 1) - .15, Y1, z0 + v.h * .78 * t / 4], "rgba(10,15,30,.35)", .5)
+          }
+        });
+        if (fx("cross", i).length) { const cu = v.w * .78; P(RF("L", cu - .2, cu + .2, 1.5, 3), "#D64545"); P(RF("L", cu - .65, cu + .65, 1.95, 2.55), "#D64545") }
+        if (fx("ramp", i).length) { const a = v.x + .6, b = v.x + 3.6; P([[a, Y1, .5], [b, Y1, .5], [b, Y1 + 2.6, 0], [a, Y1 + 2.6, 0]], shade(pal.wall, 1.08)); P([[b, Y1, 0], [b, Y1, .5], [b, Y1 + 2.6, 0]], shade(pal.wall, .7)); Ln([a, Y1 + 2.6, 1.1], [b, Y1 + 2.6, 1.1], pal.trim, 1); Ln([a, Y1 + .1, 1.3], [a, Y1 + 2.6, .5], pal.trim, 1) }
+        if (fx("balcony", i).length) { P([[v.x + 1, Y1, 3], [X1 - 1, Y1, 3], [X1 - 1, Y1 + .9, 3], [v.x + 1, Y1 + .9, 3]], shade(pal.wall, .95)); P([[v.x + 1, Y1 + .9, 3], [X1 - 1, Y1 + .9, 3], [X1 - 1, Y1 + .9, 3.8], [v.x + 1, Y1 + .9, 3.8]], "rgba(93,118,135,.5)") }
+        if (fx("canopy", i).length) { const c = v.x + v.w * .5; Ln([c - 1.4, Y1 + 1.4, 0], [c - 1.4, Y1 + 1.4, 2.5], pal.trim, 1.2); Ln([c + 1.4, Y1 + 1.4, 0], [c + 1.4, Y1 + 1.4, 2.5], pal.trim, 1.2); P([[c - 1.5, Y1, 2.5], [c + 1.5, Y1, 2.5], [c + 1.5, Y1 + 1.5, 2.5], [c - 1.5, Y1 + 1.5, 2.5]], shade(pal.trim, 1.15)) }
+        if (fx("colonnade", i).length) {
+          const cols = []; for (let x = v.x + .8; x <= X1 - .8; x += 1.7)cols.push(x);
+          cols.forEach(x => box(x, Y1 + 1, .4, .4, 0, zt - .3, shade(pal.wall, 1.05)));
+          P([[v.x, Y1, zt - .3], [X1, Y1, zt - .3], [X1, Y1 + 1.5, zt - .3], [v.x, Y1 + 1.5, zt - .3]], shade(pal.wall, 1.1));
+          P([[v.x, Y1 + 1.5, zt - .3], [X1, Y1 + 1.5, zt - .3], [X1, Y1 + 1.5, zt], [v.x, Y1 + 1.5, zt]], shade(pal.trim, 1))
+        }
+        // roof
+        const rc = v.glass ? shade(pal.glass, 1.1) : pal.roof;
+        if (rk === "flat" || rk === "monitor") {
+          P([[v.x, v.y, zt], [X1, v.y, zt], [X1, Y1, zt], [v.x, Y1, zt]], shade(rc, 1.3));
+          if (rk === "monitor") {
+            const cx = v.x + v.w * .2, cw = v.w * .6, cy = v.y + v.d * .2, cd = v.d * .55;
+            box(cx, cy, cw, cd, zt, 1.4, pal.glass, shade(pal.roof, 1.15));
+            P([[cx - .3, cy - .3, zt + 1.4], [cx + cw + .3, cy - .3, zt + 1.4], [cx + cw + .3, cy + cd + .3, zt + 1.4], [cx - .3, cy + cd + .3, zt + 1.4]], shade(pal.roof, 1.1))
+          }
+        } else if (rk === "gable") {
+          P([[v.x, Y1, zt], [X1, Y1, zt], [X1, ym, zt + r], [v.x, ym, zt + r]], rc);
+          Ln([v.x, ym, zt + r], [X1, ym, zt + r], shade(rc, 1.5), 1.4);
+        } else if (rk === "hip") {
+          const ii = Math.min(v.d / 2, v.w / 2.2);
+          P([[v.x, Y1, zt], [X1, Y1, zt], [X1 - ii, ym, zt + r], [v.x + ii, ym, zt + r]], rc);
+          P([[X1, Y1, zt], [X1, v.y, zt], [X1 - ii, ym, zt + r]], shade(rc, .78));
+        } else if (rk === "shed") {
+          P([[v.x, Y1, zt], [X1, Y1, zt], [X1, v.y, zt + sr], [v.x, v.y, zt + sr]], rc);
+        } else if (bf) {
+          P([[v.x, ym, zt], [X1, ym, zt], [X1, v.y, zt + sr], [v.x, v.y, zt + sr]], shade(rc, 1.12));
+          P([[v.x, ym, zt], [X1, ym, zt], [X1, Y1, zt + sr], [v.x, Y1, zt + sr]], shade(rc, .9));
+        }
+        const rz = rk === "gable" || rk === "hip" ? r * .55 : rk === "flat" || rk === "monitor" ? 0 : sr * .4;
+        fx("chimney", i).forEach(() => box(v.x + v.w * .68, ym - .2, .8, .8, zt + rz, 2.4, "#8a5a4a", "#6d4538"));
+        fx("vents", i).forEach(() => { box(v.x + v.w * .25, ym, .9, .9, zt + rz, .8, pal.trim); box(v.x + v.w * .6, ym, .9, .9, zt + rz, .8, pal.trim) });
+        fx("skylights", i).forEach(() => { box(v.x + v.w * .2, ym, 1.6, 1.2, zt + rz, .6, pal.glass, pal.glass); box(v.x + v.w * .55, ym, 1.6, 1.2, zt + rz, .6, pal.glass, pal.glass) });
+        fx("beacon", i).forEach(() => box(v.x + v.w * .45, ym, .7, .7, zt + rz, 1.4, pal.trim, "#F2C14E"));
+        fx("flag", i).forEach(() => { const px = v.x + .8, py = Y1 - .8; Ln([px, py, zt], [px, py, zt + 5], "#4a5560", 1.2); P([[px, py, zt + 5], [px + 1.9, py, zt + 4.7], [px + 1.9, py, zt + 3.8], [px, py, zt + 4.1]], "#E4572E") });
+        fx("cornice", i).forEach(() => P(RF("L", 0, v.w, v.h - .4, v.h), pal.trim));
+      };
+      vols.map((v, i) => [v, i]).sort((a, b) => (a[0].x + a[0].w / 2 + a[0].y + a[0].d / 2) - (b[0].x + b[0].w / 2 + b[0].y + b[0].d / 2)).forEach(([v, i]) => drawVol(v, i));
+      if (hasF("ghost")) {
+        const l = vols[vols.length - 1], x = l.x + l.w;
+        const g = (c) => P(c, "rgba(160,211,230,.22)", 'stroke-dasharray="3 2" stroke="#5D7687"');
+        g([[x, l.y + l.d, 0], [x + l.w, l.y + l.d, 0], [x + l.w, l.y + l.d, l.h], [x, l.y + l.d, l.h]]);
+        g([[x + l.w, l.y, 0], [x + l.w, l.y + l.d, 0], [x + l.w, l.y + l.d, l.h], [x + l.w, l.y, l.h]]);
+        g([[x, l.y, l.h], [x + l.w, l.y, l.h], [x + l.w, l.y + l.d, l.h], [x, l.y + l.d, l.h]])
+      }
+      let x0 = Math.min(...pts.map(p => p[0])), x1 = Math.max(...pts.map(p => p[0])), y0 = Math.min(...pts.map(p => p[1])), y1 = Math.max(...pts.map(p => p[1]));
+      let w = x1 - x0, h = y1 - y0; const pad = Math.max(w, h) * .06; x0 -= pad; y0 -= pad; w += 2 * pad; h += 2 * pad;
+      if (w < minW) { x0 -= (minW - w) / 2; w = minW }
+      if (w / h < ratio) { const nw = h * ratio; x0 -= (nw - w) / 2; w = nw } else { const nh = w / ratio; y0 -= (nh - h) * .65; h = nh }
+      return { svg: out.join(""), vb: `${x0.toFixed(1)} ${y0.toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}` };
+    }
+    function building3d(name, cls, minW, ratio) {
+      const g = catOf(name), r = iso(name, st.roof, palette(st.style), tint(CATCOL[g], .72), minW, ratio, true);
+      return `<svg class="${cls || ""}" viewBox="${r.vb}" aria-hidden="true">${r.svg}</svg>`;
+    }
+
+    function render() {
+      const d = descriptor(st), [type, name, why] = d.p;
+      const r = iso(name, st.roof, palette(st.style), tint(CATCOL[catOf(name)], .7), 230, 600 / 340, true);
+      const sv = $("svg"); sv.setAttribute("viewBox", r.vb); sv.innerHTML = r.svg;
+      sv.style.animation = "none"; void sv.getBoundingClientRect(); sv.style.animation = "";
+      $("outName").textContent = d.long;
+      $("outType").textContent = type;
+      $("outIco").innerHTML = ICONS[name]; $("outIco").style.setProperty("--c", CATCOL[catOf(name)]);
+      $("f1").textContent = d.long;
+      $("f2").textContent = d.short;
+      $("why").textContent = `${name}: ${why} ${d.show ? d.r.n + " — " + d.r.why : ""}`;
+      document.title = `${d.short} — MetaMod Configurator`;
+      { const sc = $("list").scrollTop; renderList(); $("list").scrollTop = sc }
+      history.replaceState(null, "", `#line=${st.line}&product=${name}&roof=${st.roof}&style=${st.style}${st.showRoof === null ? "" : "&showroof=" + (st.showRoof ? 1 : 0)}`);
+    }
+
+    /* ---------- controls ---------- */
+    /* ---------- controls ---------- */
+    function renderList() {
+      const src = st.line === "campus" ? CAMPUS : HOUSING;
+      $("chips").innerHTML = (src.length > 1 ? [`<button class="chip" data-cat="all" aria-pressed="${st.cat === "all"}">All</button>`] : []).concat(src.length > 1 ? src.map(([g, it]) => `<button class="chip" data-cat="${g}" aria-pressed="${st.cat === g}" style="--c:${CATCOL[g]}">${ico(it[0][1])}${CATSHORT[g]}</button>`) : []).join("");
+      let h = "";
+      src.forEach(([g, items]) => {
+        if (st.cat !== "all" && src.length > 1 && st.cat !== g) return;
+        h += `<div class="tgrp" style="--c:${CATCOL[g]}">${g}</div>`;
+        items.forEach(p => h += `<button class="tile" style="--c:${CATCOL[g]}" data-p="${p[1]}" aria-pressed="${p[1] === st.prod}" title="${p[0]}"><span class="ph">${building3d(p[1], "", 170, 4 / 3)}</span><b>${p[1]}</b><small>${p[0].replace(/ \(.*\)/, "")}</small></button>`);
+      });
+      $("list").innerHTML = h;
+      const p = prodOf(st.prod);
+      if (p) {
+        const g = catOf(p[1]); $("detail").style.setProperty("--c", CATCOL[g]);
+        $("detail").innerHTML = `<span class="ph big">${building3d(p[1], "", 170, 4 / 3)}</span><div><small>${CATSHORT[g]}</small><b>MetaMod ${p[1]} — ${p[0]}</b><small>${p[2]}</small></div>`;
+      }
+    }
+    function renderRoofs() {
+      $("roofs").innerHTML = ROOFS.map(r => {
+        const ok = r.styles.includes(st.style);
+        return `<button class="pick" data-r="${r.k}" aria-pressed="${r.k === st.roof}" ${ok ? "" : "disabled"} title="${ok ? "" : "Not offered with " + styleOf(st.style).n}"><svg viewBox="0 0 100 46" aria-hidden="true">${miniRoof(r.k)}</svg><b>${r.n}</b><small>${r.shape}</small></button>`;
+      }).join("");
+      const r = roofOf(st.roof);
+      $("roofNote").textContent = `${r.n} fits: ${r.styles.map(c => styleOf(c).n).join(", ")}.`;
+    }
+    function miniRoof(k) {
+      const c = "#2B3042";
+      return {
+        gable: `<polygon points="10,36 50,10 90,36" fill="${c}"/>`,
+        hip: `<polygon points="10,36 30,14 70,14 90,36" fill="${c}"/>`,
+        shed: `<polygon points="10,36 10,10 90,24 90,36" fill="${c}"/>`,
+        butterfly: `<polygon points="10,10 50,28 90,10 90,20 50,36 10,20" fill="${c}"/>`,
+        monitor: `<rect x="10" y="26" width="80" height="10" fill="${c}"/><rect x="30" y="12" width="40" height="14" fill="#7FB4CC" stroke="${c}" stroke-width="3"/>`
+      }[k];
+    }
+    function renderStyles() {
+      $("styles").innerHTML = STYLES.map(s => `<button class="pick" data-s="${s.c}" aria-pressed="${s.c === st.style}"><b>${s.n}</b><small>${s.c}</small></button>`).join("");
+      const cb = $("showRoof"); cb.checked = nameRoof();
+    }
+    function toast(m) { const t = $("toast"); t.textContent = m; t.classList.add("on"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("on"), 2200) }
+    function setStyle(c) {
+      st.style = c;
+      if (!roofOf(st.roof).styles.includes(c)) {
+        const old = roofOf(st.roof).n; st.roof = ROOFS.find(r => r.styles.includes(c)).k;
+        toast(`${old} isn't offered with ${styleOf(c).n} — switched to ${roofOf(st.roof).n}`);
+      }
+    }
+    function full() { renderList(); renderRoofs(); renderStyles(); render(); updateModalBadges(); }
+
+    /* ---------- modal & pdf logic ---------- */
+    function updateModalBadges() {
+      const d = descriptor(st), [type, name] = d.p;
+      const col = CATCOL[catOf(name)] || "#181B29";
+
+      const tb = $("touchBadge");
+      if (tb) {
+        tb.style.borderLeftColor = col;
+        $("touchName").textContent = d.long;
+        $("touchCode").textContent = `${type} • Schedule Code: ${d.short}`;
+        $("touchIco").innerHTML = ICONS[name] || "";
+        $("touchIco").style.color = col;
+      }
+
+      const sb = $("shareBadge");
+      if (sb) {
+        sb.style.borderLeftColor = col;
+        $("shareName").textContent = d.long;
+        $("shareCode").textContent = `${type} • Schedule Code: ${d.short}`;
+        $("shareIco").innerHTML = ICONS[name] || "";
+        $("shareIco").style.color = col;
+      }
+
+      const surl = $("shareUrlInput");
+      if (surl) surl.value = window.location.href;
+
+      const cMsg = $("cMsg");
+      if (cMsg && !cMsg.dataset.edited) {
+        cMsg.value = `I am inquiring about the ${d.long} (${type}). Please provide estimated lead time, standard delivery schedule, and pricing for this configuration.`;
+      }
+
+      const mail = $("mailLink");
+      if (mail) {
+        mail.href = `mailto:info@metamodulars.com?subject=${encodeURIComponent("Inquiry: " + d.long)}&body=${encodeURIComponent("Hello MetaMod team,\n\nI am interested in learning more about the following building configuration:\n\n- Model: " + d.long + "\n- Building Type: " + type + "\n- Schedule Code: " + d.short + "\n- Configuration Link: " + window.location.href + "\n\nPlease let me know the next steps for a proposal.\n\nThank you!")}`;
+      }
+    }
+
+    function openModal(id) {
+      const m = $(id);
+      if (!m) return;
+      updateModalBadges();
+      m.classList.add("open");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeModal(id) {
+      const m = id ? $(id) : document.querySelector(".modal-backdrop.open");
+      if (!m) return;
+      m.classList.remove("open");
+      if (!document.querySelector(".modal-backdrop.open")) {
+        document.body.style.overflow = "";
+      }
+    }
+
+    function exportPdf() {
+      const d = descriptor(st);
+      const [type, name, why] = d.p;
+      const svgEl = $("svg");
+      toast("Generating PDF specification sheet…");
+
+      let xml = new XMLSerializer().serializeToString(svgEl);
+      if (!xml.includes("xmlns=")) {
+        xml = xml.replace("<svg ", '<svg xmlns="http://www.w3.org/2000/svg" ');
+      }
+      const svgBlob = new Blob([xml], { type: "image/svg+xml;charset=utf-8" });
+      const URLObj = window.URL || window.webkitURL || window;
+      const blobURL = URLObj.createObjectURL(svgBlob);
+
+      const img = new Image();
+
+      img.onload = function () {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = 1200;
+          canvas.height = 680;
+          const ctx = canvas.getContext("2d");
+
+          const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+          grad.addColorStop(0, "#dcecf3");
+          grad.addColorStop(1, "#f6fafc");
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          URLObj.revokeObjectURL(blobURL);
+          const imgData = canvas.toDataURL("image/png");
+
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+          const pageWidth = doc.internal.pageSize.getWidth();
+          const pageHeight = doc.internal.pageSize.getHeight();
+
+          // Header Bar
+          doc.setFillColor(24, 27, 41);
+          doc.rect(0, 0, pageWidth, 28, "F");
+
+          // Theme Accent Line (Aqua)
+          doc.setFillColor(160, 211, 230);
+          doc.rect(0, 28, pageWidth, 2, "F");
+
+          // Brand Title
+          doc.setTextColor(255, 255, 255);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(14);
+          doc.text("METAMOD — SHAPESHIFTER BUILDING SYSTEM", 16, 12);
+
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(8.5);
+          doc.setTextColor(160, 211, 230);
+          doc.text("ARCHITECTURAL SPECIFICATION & PROPOSAL SUMMARY", 16, 18);
+
+          doc.setTextColor(180, 185, 200);
+          doc.setFontSize(8);
+          const dateStr = new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+          doc.text(`Generated: ${dateStr}`, pageWidth - 16, 18, { align: "right" });
+
+          // Building Title
+          doc.setTextColor(24, 27, 41);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(18);
+          doc.text(`MetaMod ${name}`, 16, 40);
+
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(10.5);
+          doc.setTextColor(100, 104, 121);
+          doc.text(`${type} • Line: ${st.line === "campus" ? "Campus" : "Student Housing"} • Category: ${catOf(name)}`, 16, 46);
+
+          // Embedded 3D Rendering
+          const renderW = 178;
+          const renderH = (renderW * 340) / 600;
+          doc.setDrawColor(210, 215, 222);
+          doc.setLineWidth(0.4);
+          doc.rect(16, 51, renderW, renderH);
+          doc.addImage(imgData, "PNG", 16, 51, renderW, renderH);
+
+          // Specifications Table
+          let curY = 51 + renderH + 9;
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(11);
+          doc.setTextColor(24, 27, 41);
+          doc.text("SPECIFICATIONS & NOMENCLATURE", 16, curY);
+
+          doc.setDrawColor(24, 27, 41);
+          doc.setLineWidth(0.4);
+          doc.line(16, curY + 2, pageWidth - 16, curY + 2);
+
+          curY += 7;
+
+          const specs = [
+            ["Product (Tier 1)", `MetaMod ${name} (${catOf(name)})`],
+            ["Building Type", type],
+            ["Roofline (Tier 2)", `${d.r.n} (${d.r.shape})`],
+            ["Style Track (Tier 3)", `${d.s.n} (${d.s.c})`],
+            ["Proposal / Sales Descriptor", d.long],
+            ["Drawing / Schedule Code", d.short],
+            ["Architectural Rationale", `${why} ${d.show ? d.r.n + ' — ' + d.r.why : ''}`]
+          ];
+
+          doc.setFontSize(8.5);
+          specs.forEach(([label, value], i) => {
+            const isRationale = label.startsWith("Architectural");
+            const rowH = isRationale ? 13 : 6.5;
+            if (i % 2 === 0) {
+              doc.setFillColor(244, 245, 247);
+              doc.rect(16, curY - 3.5, pageWidth - 32, rowH, "F");
+            }
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(93, 118, 135);
+            doc.text(label, 19, curY + 1);
+
+            doc.setFont(label.includes("Code") ? "courier" : "helvetica", label.includes("Code") ? "bold" : "normal");
+            doc.setTextColor(24, 27, 41);
+
+            if (isRationale) {
+              const split = doc.splitTextToSize(value, 116);
+              doc.text(split, 66, curY + 1);
+              curY += rowH;
+            } else {
+              doc.text(value, 66, curY + 1);
+              curY += rowH;
+            }
+          });
+
+          // MetaMod System Box
+          curY += 3;
+          doc.setFillColor(244, 245, 247);
+          doc.setDrawColor(220, 225, 230);
+          doc.roundedRect(16, curY, pageWidth - 32, 20, 2, 2, "FD");
+
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(8);
+          doc.setTextColor(24, 27, 41);
+          doc.text("METAMOD SHAPESHIFTER BUILDING SYSTEM", 20, curY + 5.5);
+
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(7.5);
+          doc.setTextColor(100, 104, 121);
+          doc.text("Pre-checked DSA and code compliant designs • Standardized school & institutional architecture.", 20, curY + 10.5);
+          doc.text(`Interactive 3D Configurator URL: ${window.location.href}`, 20, curY + 15.5);
+
+          // Bottom Bar
+          doc.setFillColor(24, 27, 41);
+          doc.rect(0, pageHeight - 8, pageWidth, 8, "F");
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(7);
+          doc.text("MetaMod Modular Technologies • www.metamodulars.com • Specification Document", pageWidth / 2, pageHeight - 3, { align: "center" });
+
+          const fileName = `MetaMod_${name}_${d.r.n}_${d.s.n}.pdf`.replace(/[^a-zA-Z0-9_-]/g, "_");
+          doc.save(fileName);
+          toast(`PDF saved: ${fileName}`);
+        } catch (err) {
+          console.error("PDF generation error:", err);
+          toast("PDF error — opening print dialog fallback…");
+          window.print();
+        }
+      };
+
+      img.onerror = function (e) {
+        console.error("SVG rasterization error:", e);
+        toast("Rendering error — opening print fallback…");
+        window.print();
+      };
+
+      img.src = blobURL;
+    }
+
+    document.addEventListener("click", e => {
+      const closeBtn = e.target.closest("[data-close]");
+      if (closeBtn) {
+        closeModal(closeBtn.dataset.close);
+        return;
+      }
+
+      if (e.target.classList.contains("modal-backdrop")) {
+        closeModal(e.target.id);
+        return;
+      }
+
+      const t = e.target.closest("button");
+      if (!t) return;
+
+      if (t.id === "btnTouch" || t.dataset.modal === "touch") {
+        openModal("modalTouch");
+      }
+      else if (t.id === "btnSharePdf" || t.dataset.modal === "pdf") {
+        openModal("modalPdf");
+      }
+      else if (t.id === "btnExportPdf") {
+        exportPdf();
+      }
+      else if (t.id === "btnPrintPdf") {
+        window.print();
+      }
+      else if (t.id === "btnCopyShareUrl") {
+        navigator.clipboard.writeText($("shareUrlInput").value).then(
+          () => toast("Configuration link copied!"),
+          () => toast("Copy failed")
+        );
+      }
+      else if (t.id === "submitInquiry") {
+        const nameVal = $("cName").value.trim();
+        const emailVal = $("cEmail").value.trim();
+        if (!nameVal || !emailVal) {
+          toast("Please enter your name and email.");
+          return;
+        }
+        toast(`Thank you, ${nameVal}! Your inquiry has been sent.`);
+        closeModal("modalTouch");
+        $("touchForm").reset();
+      }
+      else if (t.dataset.cat) { st.cat = t.dataset.cat; renderList(); }
+      else if (t.dataset.p) { st.prod = t.dataset.p; render(); updateModalBadges(); }
+      else if (t.dataset.r) { st.roof = t.dataset.r; renderRoofs(); render(); updateModalBadges(); }
+      else if (t.dataset.s) { setStyle(t.dataset.s); st.showRoof = null; renderRoofs(); renderStyles(); render(); updateModalBadges(); }
+      else if (t.dataset.line) {
+        st.line = t.dataset.line; document.querySelectorAll("[data-line]").forEach(b => b.setAttribute("aria-pressed", b.dataset.line === st.line));
+        const first = (st.line === "campus" ? CAMPUS : HOUSING)[0][1][0][1]; st.prod = first; st.cat = "all"; renderList(); render(); updateModalBadges();
+      }
+      else if (t.dataset.copy) { navigator.clipboard.writeText($(t.dataset.copy).textContent).then(() => toast("Copied"), () => toast("Copy failed")); }
+    });
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") closeModal();
+    });
+
+    $("showRoof").addEventListener("change", e => { st.showRoof = e.target.checked; render(); updateModalBadges(); });
+    $("cMsg").addEventListener("input", () => { $("cMsg").dataset.edited = "true"; });
+
+    /* ---------- init from URL hash ---------- */
+    (function () {
+      const p = new URLSearchParams(location.hash.slice(1));
+      if (p.get("line") === "housing") st.line = "housing";
+      const pr = p.get("product"); if (pr && prodOf(pr)) { st.prod = pr; if (HOUSING[0][1].some(x => x[1] === pr)) st.line = "housing" }
+      if (p.get("roof") && roofOf(p.get("roof"))) st.roof = p.get("roof");
+      if (p.get("style") && styleOf(p.get("style"))) st.style = p.get("style");
+      if (!roofOf(st.roof).styles.includes(st.style)) st.roof = ROOFS.find(r => r.styles.includes(st.style)).k;
+      if (p.has("showroof")) st.showRoof = p.get("showroof") === "1";
+      document.querySelectorAll("[data-line]").forEach(b => b.setAttribute("aria-pressed", b.dataset.line === st.line));
+      full();
+    })();
+  </script>
+</body>
+
+</html>

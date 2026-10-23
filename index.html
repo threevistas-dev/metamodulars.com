@@ -2025,7 +2025,7 @@
               <a href="tel:+14153201980" style="margin-top: 4px;">415-320-1980</a>
             </div>
           </div>
-          <form id="form" novalidate>
+          <form id="contact-form">
             <div class="field">
               <label for="f-name">Name</label>
               <input id="f-name" name="name" autocomplete="name" required data-fs-field>
@@ -2073,9 +2073,9 @@
             <button class="btn btn-dark" type="submit" data-fs-submit-btn>Request a quote</button>
             <p class="formnote" id="formnote">By submitting you agree to MetaMod's privacy policy and consent to being
               contacted about your inquiry.</p>
-            <div data-fs-success class="form-status-msg fs-success">Thanks for your submission!</div>
-            <div data-fs-error="" class="form-status-msg fs-error">Oops! There was a problem submitting your form.</div>
           </form>
+          <div data-fs-success>Thanks for your submission!</div>
+          <div data-fs-error>Oops! There was a problem submitting your form.</div>
         </div>
       </div>
     </section>
@@ -2142,7 +2142,7 @@
       </button>
     </div>
     <div class="drawer-body">
-      <form id="drawer-form" class="drawer-form" novalidate>
+      <form id="drawer-form" class="drawer-form">
         <div class="field">
           <label for="df-name">Name *</label>
           <input id="df-name" name="name" autocomplete="name" required placeholder="Jane Doe" data-fs-field>
@@ -2192,9 +2192,9 @@
         <button class="btn btn-dark full-btn" type="submit" data-fs-submit-btn>Request a quote</button>
         <p class="formnote" id="drawer-formnote">By submitting you agree to MetaMod's privacy policy and consent to
           being contacted about your inquiry.</p>
-        <div data-fs-success class="form-status-msg fs-success">Thanks for your submission!</div>
-        <div data-fs-error="" class="form-status-msg fs-error">Oops! There was a problem submitting your form.</div>
       </form>
+      <div data-fs-success>Thanks for your submission!</div>
+      <div data-fs-error>Oops! There was a problem submitting your form.</div>
     </div>
   </aside>
 
@@ -2207,7 +2207,7 @@
         (formspree.q = formspree.q || []).push(arguments);
       };
     formspree("initForm", {
-      formElement: "#form",
+      formElement: "#contact-form",
       formId: "mkjjnwyj",
     });
     formspree("initForm", {

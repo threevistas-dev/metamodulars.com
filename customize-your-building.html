@@ -606,6 +606,253 @@
       margin-bottom: 12px
     }
 
+    /* ---- Wizard Navigation & Sequential Screens ---- */
+    .wizard-nav {
+      display: flex;
+      align-items: center;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 6px;
+      margin-bottom: 4px;
+      gap: 4px;
+    }
+
+    .wizard-tab {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border: 1px solid transparent;
+      background: transparent;
+      border-radius: 4px;
+      cursor: pointer;
+      text-align: left;
+      transition: all .16s ease;
+      color: var(--ink);
+    }
+
+    .wizard-tab:hover {
+      background: var(--mist);
+    }
+
+    .wizard-tab.active {
+      background: var(--ink);
+      color: #fff;
+    }
+
+    .wizard-tab.completed:not(.active) {
+      background: rgba(160, 211, 230, .14);
+      border-color: rgba(160, 211, 230, .45);
+    }
+
+    .wizard-tab .w-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--mist);
+      color: var(--steel);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      display: grid;
+      place-items: center;
+      flex: none;
+      transition: all .16s ease;
+    }
+
+    .wizard-tab.active .w-num {
+      background: var(--aqua);
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .wizard-tab.completed:not(.active) .w-num {
+      background: var(--steel);
+      color: #fff;
+    }
+
+    .wizard-tab .w-text {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .wizard-tab .w-text b {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .wizard-tab .w-text small {
+      display: block;
+      font-size: 11px;
+      opacity: .75;
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 90px;
+    }
+
+    .wizard-divider {
+      width: 1px;
+      height: 26px;
+      background: var(--line);
+      margin: 0 1px;
+      flex: none;
+    }
+
+    .step[data-step-card] {
+      display: none;
+    }
+
+    .step[data-step-card].active {
+      display: block;
+      animation: stepFadeIn .22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes stepFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .step-footer {
+      display: flex;
+      align-items: center;
+      margin-top: 22px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      gap: 12px;
+    }
+
+    .step-footer.right {
+      justify-content: flex-end;
+    }
+
+    .step-footer.between {
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .step-finish-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-wizard {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: inherit;
+      font-size: 13.5px;
+      font-weight: 700;
+      padding: 10px 18px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all .16s ease;
+      text-decoration: none;
+      border: 1px solid transparent;
+      outline: none;
+      line-height: 1;
+    }
+
+    .btn-wizard svg {
+      width: 14px;
+      height: 14px;
+      flex: none;
+      transition: transform .16s ease;
+    }
+
+    .btn-wizard.btn-next {
+      background: var(--ink);
+      color: #fff;
+    }
+
+    .btn-wizard.btn-next:hover {
+      background: var(--ink-soft);
+      transform: translateY(-1px);
+    }
+
+    .btn-wizard.btn-next:hover svg {
+      transform: translateX(2px);
+    }
+
+    .btn-wizard.btn-prev {
+      background: var(--mist);
+      color: var(--ink);
+      border-color: var(--line);
+    }
+
+    .btn-wizard.btn-prev:hover {
+      background: #fff;
+      border-color: var(--ink);
+      transform: translateY(-1px);
+    }
+
+    .btn-wizard.btn-prev:hover svg {
+      transform: translateX(-2px);
+    }
+
+    .btn-wizard.btn-touch {
+      background: var(--ink);
+      color: #fff;
+    }
+
+    .btn-wizard.btn-touch:hover {
+      background: var(--ink-soft);
+      transform: translateY(-1px);
+    }
+
+    .btn-wizard.btn-pdf {
+      background: var(--aqua);
+      color: var(--ink);
+    }
+
+    .btn-wizard.btn-pdf:hover {
+      background: #8fcadc;
+      transform: translateY(-1px);
+    }
+
+    @media(max-width: 600px) {
+      .wizard-tab {
+        padding: 8px 6px;
+        gap: 6px;
+      }
+      .wizard-tab .w-text small {
+        display: none;
+      }
+      .wizard-tab .w-text b {
+        font-size: 12px;
+      }
+      .step-footer.between {
+        flex-direction: column-reverse;
+        align-items: stretch;
+      }
+      .step-footer.between .btn-wizard {
+        width: 100%;
+        justify-content: center;
+      }
+      .step-finish-actions {
+        width: 100%;
+        flex-direction: column;
+      }
+      .step-finish-actions .btn-wizard {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
     .search {
       width: 100%;
       border: 1px solid var(--line);
@@ -1738,7 +1985,35 @@
       </section>
 
       <div class="steps">
-        <section class="card step" aria-labelledby="s1">
+        <!-- Wizard Navigation Tabs -->
+        <div class="wizard-nav" role="tablist" aria-label="Configurator steps">
+          <button class="wizard-tab active" data-step="1" role="tab" aria-selected="true" id="tab-step-1" type="button">
+            <span class="w-num">1</span>
+            <span class="w-text">
+              <b>Building</b>
+              <small id="wProdBadge">Helix</small>
+            </span>
+          </button>
+          <div class="wizard-divider" aria-hidden="true"></div>
+          <button class="wizard-tab" data-step="2" role="tab" aria-selected="false" id="tab-step-2" type="button">
+            <span class="w-num">2</span>
+            <span class="w-text">
+              <b>Roofline</b>
+              <small id="wRoofBadge">Gable</small>
+            </span>
+          </button>
+          <div class="wizard-divider" aria-hidden="true"></div>
+          <button class="wizard-tab" data-step="3" role="tab" aria-selected="false" id="tab-step-3" type="button">
+            <span class="w-num">3</span>
+            <span class="w-text">
+              <b>Style</b>
+              <small id="wStyleBadge">Modern</small>
+            </span>
+          </button>
+        </div>
+
+        <!-- Step 1: Building -->
+        <section class="card step active" data-step-card="1" aria-labelledby="s1">
           <h2 id="s1"><span>1</span>Building (Tier 1)</h2>
           <p>The product name identifies the building type only and never changes with roof or style.</p>
           <div class="seg" role="group" aria-label="Product line">
@@ -1748,21 +2023,67 @@
           <div class="chips" id="chips" role="group" aria-label="Filter by category"></div>
           <div class="tiles" id="list"></div>
           <div class="detail" id="detail" aria-live="polite"></div>
+          <div class="step-footer right">
+            <button class="btn-wizard btn-next" data-goto-step="2" type="button">
+              <span>Next: Choose Roofline</span>
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
         </section>
 
-        <section class="card step" aria-labelledby="s2">
+        <!-- Step 2: Roofline -->
+        <section class="card step" data-step-card="2" aria-labelledby="s2">
           <h2 id="s2"><span>2</span>Roofline (Tier 2)</h2>
           <p>Shared across every product. Some rooflines only fit certain style tracks.</p>
           <div class="cards" id="roofs"></div>
           <div class="note" id="roofNote" aria-live="polite"></div>
+          <div class="step-footer between">
+            <button class="btn-wizard btn-prev" data-goto-step="1" type="button">
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M10 3L5 8l5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>Back to Building</span>
+            </button>
+            <button class="btn-wizard btn-next" data-goto-step="3" type="button">
+              <span>Next: Choose Style</span>
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
         </section>
 
-        <section class="card step" aria-labelledby="s3">
+        <!-- Step 3: Style -->
+        <section class="card step" data-step-card="3" aria-labelledby="s3">
           <h2 id="s3"><span>3</span>Style (Tier 3)</h2>
           <p>Kept literal — plain English, no invented names.</p>
           <div class="cards" id="styles"></div>
           <label class="check" id="rlWrap"><input type="checkbox" id="showRoof"> Name the roofline (Traditional / Hybrid
             usually omit it)</label>
+          <div class="step-footer between">
+            <button class="btn-wizard btn-prev" data-goto-step="2" type="button">
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M10 3L5 8l5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>Back to Roofline</span>
+            </button>
+            <div class="step-finish-actions">
+              <button class="btn-wizard btn-touch" data-modal="touch" type="button">
+                <svg viewBox="0 0 11.04 7.36" aria-hidden="true" style="width:11px;height:7px;">
+                  <path d="M0,1.25H9.79V7.36" fill="none" stroke="currentColor" stroke-width="2.5" />
+                </svg>
+                <span>GET IN TOUCH</span>
+              </button>
+              <button class="btn-wizard btn-pdf" data-modal="pdf" type="button">
+                <svg viewBox="0 0 11.04 7.36" aria-hidden="true" style="width:11px;height:7px;">
+                  <path d="M0,1.25H9.79V7.36" fill="none" stroke="currentColor" stroke-width="2.5" />
+                </svg>
+                <span>SAVE/SHARE PDF</span>
+              </button>
+            </div>
+          </div>
         </section>
       </div>
     </div>
@@ -2256,7 +2577,46 @@
         toast(`${old} isn't offered with ${styleOf(c).n} — switched to ${roofOf(st.roof).n}`);
       }
     }
-    function full() { renderList(); renderRoofs(); renderStyles(); render(); updateModalBadges(); }
+
+    /* ---------- wizard navigation logic ---------- */
+    let currentStep = 1;
+
+    function goToStep(n) {
+      n = Math.max(1, Math.min(3, parseInt(n, 10) || 1));
+      currentStep = n;
+
+      document.querySelectorAll(".step[data-step-card]").forEach(el => {
+        const isAct = parseInt(el.dataset.stepCard, 10) === n;
+        el.classList.toggle("active", isAct);
+      });
+
+      document.querySelectorAll(".wizard-tab").forEach(tab => {
+        const tStep = parseInt(tab.dataset.step, 10);
+        const isCurrent = tStep === n;
+        const isCompleted = tStep < n;
+        tab.classList.toggle("active", isCurrent);
+        tab.classList.toggle("completed", isCompleted);
+        tab.setAttribute("aria-selected", isCurrent ? "true" : "false");
+      });
+
+      updateWizardBadges();
+
+      if (window.innerWidth <= 980) {
+        const nav = document.querySelector(".wizard-nav");
+        if (nav) nav.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    }
+
+    function updateWizardBadges() {
+      const p = prodOf(st.prod);
+      if ($("wProdBadge") && p) $("wProdBadge").textContent = p[1];
+      const r = roofOf(st.roof);
+      if ($("wRoofBadge") && r) $("wRoofBadge").textContent = r.n;
+      const s = styleOf(st.style);
+      if ($("wStyleBadge") && s) $("wStyleBadge").textContent = s.n;
+    }
+
+    function full() { renderList(); renderRoofs(); renderStyles(); render(); updateModalBadges(); updateWizardBadges(); }
 
     /* ---------- modal & pdf logic ---------- */
     function updateModalBadges() {
@@ -2528,13 +2888,20 @@
         closeModal("modalTouch");
         $("touchForm").reset();
       }
+      else if (t.dataset.gotoStep) {
+        goToStep(t.dataset.gotoStep);
+      }
+      else if (t.classList.contains("wizard-tab") || t.closest(".wizard-tab")) {
+        const wb = t.classList.contains("wizard-tab") ? t : t.closest(".wizard-tab");
+        goToStep(wb.dataset.step);
+      }
       else if (t.dataset.cat) { st.cat = t.dataset.cat; renderList(); }
-      else if (t.dataset.p) { st.prod = t.dataset.p; render(); updateModalBadges(); }
-      else if (t.dataset.r) { st.roof = t.dataset.r; renderRoofs(); render(); updateModalBadges(); }
-      else if (t.dataset.s) { setStyle(t.dataset.s); st.showRoof = null; renderRoofs(); renderStyles(); render(); updateModalBadges(); }
+      else if (t.dataset.p) { st.prod = t.dataset.p; render(); updateModalBadges(); updateWizardBadges(); }
+      else if (t.dataset.r) { st.roof = t.dataset.r; renderRoofs(); render(); updateModalBadges(); updateWizardBadges(); }
+      else if (t.dataset.s) { setStyle(t.dataset.s); st.showRoof = null; renderRoofs(); renderStyles(); render(); updateModalBadges(); updateWizardBadges(); }
       else if (t.dataset.line) {
         st.line = t.dataset.line; document.querySelectorAll("[data-line]").forEach(b => b.setAttribute("aria-pressed", b.dataset.line === st.line));
-        const first = (st.line === "campus" ? CAMPUS : HOUSING)[0][1][0][1]; st.prod = first; st.cat = "all"; renderList(); render(); updateModalBadges();
+        const first = (st.line === "campus" ? CAMPUS : HOUSING)[0][1][0][1]; st.prod = first; st.cat = "all"; renderList(); render(); updateModalBadges(); updateWizardBadges();
       }
       else if (t.dataset.copy) { navigator.clipboard.writeText($(t.dataset.copy).textContent).then(() => toast("Copied"), () => toast("Copy failed")); }
     });

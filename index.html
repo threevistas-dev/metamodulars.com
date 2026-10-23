@@ -989,7 +989,7 @@
     form {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px
+      gap: 10px 20px
     }
 
     .field {
@@ -1041,6 +1041,45 @@
     .formnote[data-state=error] {
       color: #8A3B12;
       font-weight: 500
+    }
+
+    /* Formspree Validation & Status Messages */
+    .fs-error,
+    [data-fs-error]:not(.form-status-msg) {
+      display: block;
+      color: #b3261e;
+      font-size: 12px;
+      font-weight: 500;
+      margin-top: 3px;
+    }
+
+    .form-status-msg {
+      border-radius: 4px;
+      padding: 14px 18px;
+      font-size: 14.5px;
+      line-height: 1.5;
+      margin-top: 10px;
+    }
+
+    .form-status-msg.fs-success,
+    [data-fs-success] {
+      background: #eef7f2;
+      border: 1px solid #7bc59c;
+      color: #17633d;
+      font-weight: 600;
+    }
+
+    .form-status-msg.fs-error,
+    div[data-fs-error] {
+      background: #fdf2f1;
+      border: 1px solid #f0a39c;
+      color: #b3261e;
+      font-weight: 500;
+    }
+
+    button[data-fs-submit-btn]:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
     }
 
     /* ---------- footer ---------- */
@@ -1104,6 +1143,278 @@
 
       html {
         scroll-behavior: auto
+      }
+    }
+
+    /* ---------- sticky contact button & slide-over drawer ---------- */
+    .sticky-contact-btn {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      z-index: 850;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--ink);
+      color: var(--white);
+      padding: 13px 25px;
+      border: 1px solid rgba(255, 255, 255, .22);
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 15px;
+      letter-spacing: -.01em;
+      box-shadow: 0 10px 28px -4px rgba(24, 27, 41, .38), 0 4px 10px -2px rgba(24, 27, 41, .2);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all .24s cubic-bezier(.16, 1, .3, 1);
+    }
+
+    .sticky-contact-btn:hover {
+      background: var(--ink-soft);
+      color: var(--aqua);
+      transform: translateY(-2px);
+      box-shadow: 0 14px 34px -4px rgba(24, 27, 41, .48), 0 6px 14px -2px rgba(24, 27, 41, .25);
+      border-color: var(--aqua);
+    }
+
+    .sticky-contact-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--aqua);
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+      transition: stroke .2s ease;
+    }
+
+    .sticky-contact-btn:hover svg {
+      stroke: var(--white);
+    }
+
+    .contact-drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(24, 27, 41, .6);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 950;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .32s ease;
+    }
+
+    .contact-drawer-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .contact-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: min(500px, 92vw);
+      background: var(--white);
+      z-index: 960;
+      box-shadow: -14px 0 45px -10px rgba(0, 0, 0, .4);
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform .36s cubic-bezier(.16, 1, .3, 1);
+      visibility: hidden;
+    }
+
+    .contact-drawer.active {
+      transform: translateX(0);
+      visibility: visible;
+    }
+
+    .drawer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--line);
+      background: var(--mist);
+      flex-shrink: 0;
+    }
+
+    .drawer-header h2 {
+      margin: 4px 0 0;
+      color: var(--ink);
+      font-size: clamp(20px, 2.2vw, 24px);
+    }
+
+    .drawer-close {
+      background: none;
+      border: 1px solid var(--line);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--ink);
+      transition: all .2s ease;
+      flex-shrink: 0;
+      padding: 0;
+    }
+
+    .drawer-close:hover {
+      background: var(--white);
+      border-color: var(--ink);
+      transform: scale(1.05);
+    }
+
+    .drawer-close svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .drawer-body {
+      padding: 38px 24px 30px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .drawer-desc {
+      color: var(--grey);
+      font-size: 14.5px;
+      line-height: 1.55;
+      margin: 0;
+    }
+
+    .drawer-quick-contact {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      padding: 12px 16px;
+      background: var(--mist);
+      border-radius: 2px;
+      border: 1px solid var(--line);
+      font-size: 13.5px;
+    }
+
+    .drawer-quick-contact a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    .drawer-quick-contact a:hover {
+      color: var(--steel);
+    }
+
+    .drawer-quick-contact svg {
+      width: 15px;
+      height: 15px;
+      stroke: var(--steel);
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+
+    .drawer-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 20px;
+    }
+
+    .drawer-form .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .drawer-form .field.full {
+      grid-column: 1 / -1;
+    }
+
+    .drawer-form label {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--grey);
+      line-height: 1.3;
+    }
+
+    .drawer-form input,
+    .drawer-form select,
+    .drawer-form textarea {
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      padding: 10px 14px;
+      font-size: 14px;
+    }
+
+    .drawer-form textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .drawer-form input:hover,
+    .drawer-form select:hover,
+    .drawer-form textarea:hover {
+      border-color: var(--grey);
+    }
+
+    .drawer-form .full-btn {
+      grid-column: 1 / -1;
+      width: 100%;
+      text-align: center;
+      padding: 13px;
+      margin-top: 4px;
+    }
+
+    .drawer-form .formnote {
+      grid-column: 1 / -1;
+      font-size: 12.5px;
+      line-height: 1.45;
+      color: var(--grey);
+      margin: 2px 0 0;
+    }
+
+    @media(max-width:540px) {
+      .sticky-contact-btn {
+        bottom: 18px;
+        right: 18px;
+        padding: 11px 18px;
+        font-size: 14px;
+      }
+
+      .drawer-header {
+        padding: 18px 20px 14px;
+      }
+
+      .drawer-body {
+        padding: 18px 20px 24px;
+      }
+
+      .drawer-form {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .drawer-form .field {
+        grid-column: 1 / -1;
       }
     }
   </style>
@@ -1696,22 +2007,58 @@
             </div>
           </div>
           <form id="form" novalidate>
-            <div class="field"><label for="f-name">Name</label><input id="f-name" autocomplete="name" required></div>
-            <div class="field"><label for="f-org">District / organization</label><input id="f-org"
-                autocomplete="organization" required></div>
-            <div class="field"><label for="f-email">Email</label><input id="f-email" type="email" autocomplete="email"
-                required></div>
-            <div class="field"><label for="f-phone">Phone</label><input id="f-phone" type="tel" autocomplete="tel">
+            <div class="field">
+              <label for="f-name">Name</label>
+              <input id="f-name" name="name" autocomplete="name" required data-fs-field>
+              <span class="fs-error" data-fs-error="name"></span>
             </div>
-            <div class="field"><label for="f-interest">I'm interested in</label><select id="f-interest"></select></div>
-            <div class="field"><label for="f-when">Target occupancy</label><input id="f-when" placeholder="August 2027">
+            <div class="field">
+              <label for="f-org">District / organization</label>
+              <input id="f-org" name="organization" autocomplete="organization" required data-fs-field>
+              <span class="fs-error" data-fs-error="organization"></span>
             </div>
-            <div class="field full"><label for="f-msg">Project details</label><textarea id="f-msg"
-                placeholder="Site, enrollment, constraints, funding source"></textarea></div>
-            <button class="btn btn-dark" type="submit">Request a quote</button>
+            <div class="field">
+              <label for="f-email">Email</label>
+              <input id="f-email" type="email" name="email" autocomplete="email" required data-fs-field>
+              <span class="fs-error" data-fs-error="email"></span>
+            </div>
+            <div class="field">
+              <label for="f-phone">Phone</label>
+              <input id="f-phone" type="tel" name="phone" autocomplete="tel" data-fs-field>
+              <span class="fs-error" data-fs-error="phone"></span>
+            </div>
+            <div class="field">
+              <label for="f-interest">I'm interested in</label>
+              <select id="f-interest" name="interest" data-fs-field>
+                <option>New classrooms</option>
+                <option>Admin / front office</option>
+                <option>Multipurpose</option>
+                <option>Labs / STEM</option>
+                <option>A full campus</option>
+                <option>Spanable Buildings</option>
+                <option>Not sure yet</option>
+              </select>
+              <span class="fs-error" data-fs-error="interest"></span>
+            </div>
+            <div class="field">
+              <label for="f-when">Target occupancy</label>
+              <input id="f-when" name="target_occupancy" placeholder="August 2027" data-fs-field>
+              <span class="fs-error" data-fs-error="target_occupancy"></span>
+            </div>
+            <div class="field full">
+              <label for="f-msg">Project details</label>
+              <textarea id="f-msg" name="message" placeholder="Site, enrollment, constraints, funding source"
+                data-fs-field></textarea>
+              <span class="fs-error" data-fs-error="message"></span>
+            </div>
+            <button class="btn btn-dark" type="submit" data-fs-submit-btn>Request a quote</button>
             <p class="formnote" id="formnote">By submitting you agree to MetaMod's privacy policy and consent to being
               contacted about your inquiry.</p>
           </form>
+          <div data-fs-success class="form-status-msg fs-success" style="display: none;">Thanks for your submission!
+          </div>
+          <div data-fs-error class="form-status-msg fs-error" style="display: none;">Oops! There was a problem
+            submitting your form.</div>
         </div>
       </div>
     </section>
@@ -1752,141 +2099,107 @@
     </div>
   </footer>
 
+  <!-- ================= STICKY CONTACT BUTTON & DRAWER ================= -->
+  <button class="sticky-contact-btn" id="open-contact-drawer" aria-label="Open contact form" aria-haspopup="dialog"
+    aria-expanded="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+    </svg>
+    <span>Contact Us</span>
+  </button>
+
+  <div class="contact-drawer-backdrop" id="contact-drawer-backdrop" aria-hidden="true"></div>
+
+  <aside class="contact-drawer" id="contact-drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title"
+    aria-hidden="true">
+    <div class="drawer-header">
+      <div>
+        <div class="series">Get In Touch</div>
+        <h2 id="drawer-title">Talk to MetaMod</h2>
+      </div>
+      <button class="drawer-close" id="close-contact-drawer" aria-label="Close contact drawer">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div class="drawer-body">
+      <form id="drawer-form" class="drawer-form" novalidate>
+        <div class="field">
+          <label for="df-name">Name *</label>
+          <input id="df-name" name="name" autocomplete="name" required placeholder="Jane Doe" data-fs-field>
+          <span class="fs-error" data-fs-error="name"></span>
+        </div>
+        <div class="field">
+          <label for="df-org">District / organization *</label>
+          <input id="df-org" name="organization" autocomplete="organization" required
+            placeholder="School District or Firm" data-fs-field>
+          <span class="fs-error" data-fs-error="organization"></span>
+        </div>
+        <div class="field">
+          <label for="df-email">Email *</label>
+          <input id="df-email" type="email" name="email" autocomplete="email" required placeholder="jane@example.com"
+            data-fs-field>
+          <span class="fs-error" data-fs-error="email"></span>
+        </div>
+        <div class="field">
+          <label for="df-phone">Phone</label>
+          <input id="df-phone" type="tel" name="phone" autocomplete="tel" placeholder="(555) 000-0000" data-fs-field>
+          <span class="fs-error" data-fs-error="phone"></span>
+        </div>
+        <div class="field full">
+          <label for="df-interest">I'm interested in</label>
+          <select id="df-interest" name="interest" data-fs-field>
+            <option>New classrooms</option>
+            <option>Admin / front office</option>
+            <option>Multipurpose</option>
+            <option>Labs / STEM</option>
+            <option>A full campus</option>
+            <option>Spanable Buildings</option>
+            <option>Not sure yet</option>
+          </select>
+          <span class="fs-error" data-fs-error="interest"></span>
+        </div>
+        <div class="field full">
+          <label for="df-when">Target occupancy</label>
+          <input id="df-when" name="target_occupancy" placeholder="August 2027" data-fs-field>
+          <span class="fs-error" data-fs-error="target_occupancy"></span>
+        </div>
+        <div class="field full">
+          <label for="df-msg">Project details</label>
+          <textarea id="df-msg" name="message" placeholder="Site, enrollment, constraints, funding source"
+            data-fs-field></textarea>
+          <span class="fs-error" data-fs-error="message"></span>
+        </div>
+        <button class="btn btn-dark full-btn" type="submit" data-fs-submit-btn>Request a quote</button>
+        <p class="formnote" id="drawer-formnote">By submitting you agree to MetaMod's privacy policy and consent to
+          being contacted about your inquiry.</p>
+      </form>
+      <div data-fs-success class="form-status-msg fs-success" style="display: none;">Thanks for your submission!</div>
+      <div data-fs-error class="form-status-msg fs-error" style="display: none;">Oops! There was a problem submitting
+        your form.</div>
+    </div>
+  </aside>
+
+  <script src="assets/custom.js"></script>
+  <!-- Formspree AJAX -->
   <script>
-    /* ---------------------------------------------------------
-       Building families. Categories match what MetaMod already
-       says it builds; sizes and specs are PLACEHOLDERS — replace.
-    --------------------------------------------------------- */
-    const MODELS = [
-      {
-        id: 'c', series: 'C-Series', name: 'Classroom', cat: 'learning', cols: 2, rows: 1,
-        blurb: 'Permanent classroom buildings that replace aging portables for good. Clerestory daylight, exposed timber ceiling, and full ceiling height.',
-        sizes: ['1 room', '2 rooms', '4 rooms', '8 rooms'],
-        sf: '960 – 7,680', cap: '30 – 240', dims: '24–96 × 40 ft', lead: '16 – 26 wks',
-        rest: 'Optional', hvac: 'Zoned heat pump', plans: '4 layouts'
-      },
-      {
-        id: 'a', series: 'A-Series', name: 'Admin & front office', cat: 'campus', cols: 2, rows: 1,
-        blurb: 'Reception, administration, and staff space with a welcoming public face — the first room a parent walks into, treated like it.',
-        sizes: ['Compact', 'Standard', 'Extended'],
-        sf: '1,440 – 3,840', cap: '8 – 24 staff', dims: '36–96 × 40 ft', lead: '16 – 22 wks',
-        rest: 'Included', hvac: 'Zoned heat pump', plans: '3 layouts'
-      },
-      {
-        id: 'm', series: 'M-Series', name: 'Multipurpose', cat: 'campus', cols: 3, rows: 1,
-        blurb: 'MPR, dining, and gathering space sized to your enrollment, with a stage option, serving line, and acoustic treatment built in.',
-        sizes: ['Small', 'Medium', 'Large'],
-        sf: '3,600 – 9,600', cap: '150 – 500', dims: '60–120 × 60 ft', lead: '22 – 30 wks',
-        rest: 'Included', hvac: 'Packaged rooftop', plans: '3 layouts'
-      },
-      {
-        id: 'l', series: 'L-Series', name: 'Labs & STEM', cat: 'learning', cols: 2, rows: 1,
-        blurb: 'Specialized, fully serviced learning environments — science, CTE, robotics — with upgraded power, gas and water, and a roll-up door option.',
-        sizes: ['Single lab', 'Double lab', 'Lab + prep'],
-        sf: '1,200 – 3,600', cap: '24 – 72', dims: '30–90 × 40 ft', lead: '18 – 26 wks',
-        rest: 'Optional', hvac: 'Lab exhaust + make-up air', plans: '3 layouts'
-      },
-      {
-        id: 'x', series: 'Campus', name: 'Full campus', cat: 'campus', cols: 4, rows: 2,
-        blurb: 'The families combined into a whole school: classroom wings, admin, multipurpose, and labs, phased so the site stays open throughout.',
-        sizes: ['Phased', 'Single delivery'],
-        sf: '20,000+', cap: '400+', dims: 'To site', lead: 'By phase',
-        rest: 'Included', hvac: 'Zoned by wing', plans: 'To site'
-      }
-    ];
-
-    /* Scaled plan blocks — one bay = 24 × 40 ft at 2.2px/ft */
-    function plan(cols, rows, label) {
-      const S = 2.2, W = 24 * S, D = 40 * S, p = 12;
-      const w = cols * W + p * 2, h = rows * D + p * 2 + (rows > 1 ? 14 : 0);
-      let g = '';
-      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
-        const x = p + c * W, y = p + r * (D + (rows > 1 ? 14 : 0));
-        g += `<rect x="${x}" y="${y}" width="${W}" height="${D}" fill="var(--white)" stroke="var(--ink)" stroke-width="1.5"/>`;
-        g += `<line x1="${x + 7}" y1="${y}" x2="${x + W - 14}" y2="${y}" stroke="var(--aqua)" stroke-width="3.4"/>`;
-        g += `<path d="M${x + W - 12} ${y + D} a12 12 0 0 0 12 -12" fill="none" stroke="var(--grey)" stroke-width="1"/>`;
-      }
-      g += `<line x1="${p}" y1="${h - 5}" x2="${p + cols * W}" y2="${h - 5}" stroke="var(--grey)" stroke-width="1"/>`;
-      g += `<line x1="${p}" y1="${h - 9}" x2="${p}" y2="${h - 1}" stroke="var(--grey)" stroke-width="1"/>`;
-      g += `<line x1="${p + cols * W}" y1="${h - 9}" x2="${p + cols * W}" y2="${h - 1}" stroke="var(--grey)" stroke-width="1"/>`;
-      return `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Typical plan, ${label}">${g}</svg>`;
-    }
-
-
-
-
-
-    /* compare */
-    const ROWS = [['Building family', 'series'], ['Floor area (sq ft)', 'sf'], ['Capacity', 'cap'], ['Footprint', 'dims'],
-    ['Typical schedule', 'lead'], ['Restrooms', 'rest'], ['Mechanical', 'hvac'], ['Plan options', 'plans']];
-    const picks = ['c', 'l', 'm'];
-    [...document.querySelectorAll('.cmp select')].forEach((s, i) => {
-      s.innerHTML = MODELS.map(m => `<option value="${m.id}">${m.series} — ${m.name}</option>`).join('');
-      s.value = picks[i];
-      s.addEventListener('change', () => { picks[i] = s.value; drawCompare(); });
+    window.formspree =
+      window.formspree ||
+      function () {
+        (formspree.q = formspree.q || []).push(arguments);
+      };
+    formspree("initForm", {
+      formElement: "#form",
+      formId: "mkjjnwyj",
     });
-    function drawCompare() {
-      const ch = picks.map(id => MODELS.find(m => m.id === id));
-      document.getElementById('cmp-body').innerHTML = ROWS.map(([l, k]) =>
-        `<tr><th scope="row">${l}</th>${ch.map(m => `<td class="tnum">${m[k]}</td>`).join('')}</tr>`).join('');
-    }
-    drawCompare();
-
-    /* inquiry options mirror the live site's list */
-    document.getElementById('f-interest').innerHTML =
-      ['New classrooms', 'Admin / front office', 'Multipurpose', 'Labs / STEM', 'A full campus', 'Not sure yet']
-        .map(o => `<option>${o}</option>`).join('');
-
-    document.getElementById('form').addEventListener('submit', e => {
-      e.preventDefault();
-      const note = document.getElementById('formnote');
-      const missing = [...e.target.querySelectorAll('[required]')].filter(i => !i.value.trim());
-      if (missing.length) {
-        note.dataset.state = 'error';
-        note.textContent = 'Add your name, organization, and email so we can reply.';
-        missing[0].focus(); return;
-      }
-      note.dataset.state = 'error';
-      note.textContent = 'REPLACE: this form does not send anywhere yet. Connect it to your inbox or CRM before launch.';
+    formspree("initForm", {
+      formElement: "#drawer-form",
+      formId: "mkjjnwyj",
     });
-
-    /* ---------------------------------------------------------
-       Dropdown menus. Opens on hover above 920px, on click at
-       any width, closes on Escape, outside click, or focus leaving.
-    --------------------------------------------------------- */
-    const desktop = window.matchMedia('(min-width:921px)');
-    const items = [...document.querySelectorAll('.navitem')];
-    let hoverTimer;
-    function setOpen(item, on) {
-      item.classList.toggle('open', on);
-      item.querySelector('.navtrigger').setAttribute('aria-expanded', on);
-      item.querySelector('.panel').hidden = !on;
-    }
-    function closeAll(except) { items.forEach(i => { if (i !== except) setOpen(i, false); }); }
-    items.forEach(item => {
-      const trigger = item.querySelector('.navtrigger');
-      trigger.addEventListener('click', e => {
-        e.preventDefault();
-        const willOpen = !item.classList.contains('open');
-        closeAll(item); setOpen(item, willOpen);
-      });
-      item.addEventListener('mouseenter', () => { if (!desktop.matches) return; clearTimeout(hoverTimer); closeAll(item); setOpen(item, true); });
-      item.addEventListener('mouseleave', () => { if (!desktop.matches) return; hoverTimer = setTimeout(() => setOpen(item, false), 140); });
-      item.addEventListener('focusout', e => { if (!desktop.matches) return; if (!item.contains(e.relatedTarget)) setOpen(item, false); });
-    });
-    document.addEventListener('keydown', e => {
-      if (e.key !== 'Escape') return;
-      const open = document.querySelector('.navitem.open');
-      if (open) { setOpen(open, false); open.querySelector('.navtrigger').focus(); }
-    });
-    document.addEventListener('click', e => { if (!e.target.closest('.navitem')) closeAll(); });
-    desktop.addEventListener('change', () => closeAll());
-
-    /* mobile nav */
-    const mb = document.querySelector('.menu-btn'), nv = document.getElementById('nav');
-    mb.addEventListener('click', () => { const o = nv.classList.toggle('open'); mb.setAttribute('aria-expanded', o); mb.textContent = o ? 'Close' : 'Menu'; if (!o) closeAll(); });
-    nv.addEventListener('click', e => { if (e.target.closest('a')) { nv.classList.remove('open'); mb.setAttribute('aria-expanded', 'false'); mb.textContent = 'Menu'; closeAll(); } });
   </script>
+  <script src="https://unpkg.com/@formspree/ajax@1" defer></script>
 </body>
 
 </html>

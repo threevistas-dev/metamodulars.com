@@ -88,18 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
     drawCompare();
   }
 
-  /* inquiry form options */
-  const fInterest = document.getElementById('f-interest');
-  if (fInterest) {
-    fInterest.innerHTML = [
-      'New classrooms',
-      'Admin / front office',
-      'Multipurpose',
-      'Labs / STEM',
-      'A full campus',
-      'Not sure yet'
-    ].map(o => `<option>${o}</option>`).join('');
-  }
 
 
 
@@ -197,8 +185,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const contactDrawer = document.getElementById('contact-drawer');
   const contactBackdrop = document.getElementById('contact-drawer-backdrop');
   const closeDrawerBtn = document.getElementById('close-contact-drawer');
-  const drawerForm = document.getElementById('drawer-form');
-  const drawerNote = document.getElementById('drawer-formnote');
 
   function openDrawer() {
     if (!contactDrawer || !contactBackdrop) return;

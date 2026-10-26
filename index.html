@@ -150,7 +150,8 @@
     }
 
     section {
-      padding-block: var(--sec)
+      padding-top: 90px;
+      padding-bottom: 90px;
     }
 
     /* ---------- header ---------- */
@@ -1440,6 +1441,34 @@
 
       .drawer-form .field {
         grid-column: 1 / -1;
+      }
+    }
+
+    /* Responsive section spacing for mobile and tablet (<= 1024px) */
+    @media(max-width:1024px) {
+      :root {
+        --sec: 50px;
+      }
+
+      section {
+        padding-top: 50px;
+        padding-bottom: 50px;
+        padding-block: 50px;
+      }
+
+      .cut {
+        margin-top: 50px;
+      }
+
+      #spanable,
+      .hero {
+        padding-top: 50px;
+      }
+
+      .band {
+        padding-top: 50px;
+        padding-bottom: 50px;
+        padding-block: 50px;
       }
     }
   </style>

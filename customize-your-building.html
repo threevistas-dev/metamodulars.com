@@ -3066,7 +3066,69 @@
       if (!roofOf(st.roof).styles.includes(st.style)) st.roof = ROOFS.find(r => r.styles.includes(st.style)).k;
       if (p.has("showroof")) st.showRoof = p.get("showroof") === "1";
       document.querySelectorAll("[data-line]").forEach(b => b.setAttribute("aria-pressed", b.dataset.line === st.line));
-      full();
+      /* Header Dropdowns and Mobile Navigation */
+      (function () {
+        const desktop = window.matchMedia('(min-width:921px)');
+        const items = [...document.querySelectorAll('.navitem')];
+        let hoverTimer;
+
+        function closeAll() {
+          items.forEach(it => {
+            it.classList.remove('open');
+            const b = it.querySelector('.navtrigger');
+            const p = it.querySelector('.panel');
+            if (b) b.setAttribute('aria-expanded', 'false');
+            if (p) p.hidden = true;
+          });
+        }
+
+        items.forEach(it => {
+          const b = it.querySelector('.navtrigger');
+          const p = it.querySelector('.panel');
+          if (!b || !p) return;
+
+          b.addEventListener('click', e => {
+            e.stopPropagation();
+            const open = it.classList.contains('open');
+            closeAll();
+            if (!open) {
+              it.classList.add('open');
+              b.setAttribute('aria-expanded', 'true');
+              p.hidden = false;
+            }
+          });
+
+          it.addEventListener('mouseenter', () => {
+            if (!desktop.matches) return;
+            clearTimeout(hoverTimer);
+            closeAll();
+            it.classList.add('open');
+            b.setAttribute('aria-expanded', 'true');
+            p.hidden = false;
+          });
+
+          it.addEventListener('mouseleave', () => {
+            if (!desktop.matches) return;
+            hoverTimer = setTimeout(closeAll, 140);
+          });
+        });
+
+        document.addEventListener('click', e => {
+          if (!e.target.closest('.navitem')) closeAll();
+        });
+        document.addEventListener('keydown', e => {
+          if (e.key === 'Escape') closeAll();
+        });
+
+        const menuBtn = document.querySelector('.menu-btn');
+        const nav = document.getElementById('nav');
+        if (menuBtn && nav) {
+          menuBtn.addEventListener('click', () => {
+            const open = nav.classList.toggle('open');
+            menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+          });
+        }
+      })();
     })();
   </script>
 </body>
